@@ -1,0 +1,22 @@
+version: "3.8"
+
+services:
+  app:
+    image: kestra/kestra:v1.0.3
+    #build:
+    #  context: .
+    #dockerfile: Dockerfile
+    #  command: server local
+    entrypoint: /bin/sh -c "
+      cd /app/ && \
+      ./kestra plugins install io.kestra.plugin:plugin-serdes:LATEST && \
+      ./kestra plugins install io.kestra.plugin:plugin-transform-json:LATEST && \
+      ./kestra server local"
+    ports:
+      - "8080:8080"
+      - "7999:7999"
+    volumes:
+      - ../build/libs/:/app/plugins/
+      - /Users/stefan/sonic/12.0.4/MQ12.0/lib/:/app/plugins/jms-libs/ # example for testing, replace with your libs
+    #environment:
+    #   - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7999

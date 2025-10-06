@@ -29,7 +29,7 @@ java {
 }
 
 group = "io.kestra.plugin"
-description = 'Plugin template for Kestra'
+description = 'Plugin JMS support for Kestra'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
@@ -49,6 +49,14 @@ dependencies {
     annotationProcessor group: "io.kestra", name: "processor", version: kestraVersion
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
+
+    // jms APIs
+    implementation group: "jakarta.jms", name: "jakarta.jms-api", version: "3.1.0"
+    implementation group: "javax.jms", name: "javax.jms-api", version: "2.0.1"
+
+    // JMS utils
+    implementation group: "at.conapi.plugins", name: "common", version: "1.0.0-SNAPSHOT"
+
 }
 
 
@@ -151,9 +159,14 @@ mavenPublishing {
         }
         developers {
             developer {
-                id = 'tchiotludo'
-                name = 'Dehon'
-                email = 'ldehon@kestra.io'
+                id = 'conapi-frank'
+                name = 'Frank Beusenberg'
+                email = 'frank@conapi.at'
+            }
+            developer {
+                id = 'conapi-stefan'
+                name = 'Stefan Fritz'
+                email = 'stefan@conapi.at'
             }
         }
         scm {
@@ -172,8 +185,8 @@ jar {
     manifest {
         attributes(
                 "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "Template",
-                "X-Kestra-Group": project.group + ".templates",
+                "X-Kestra-Title": "JMS Plugins",
+                "X-Kestra-Group": project.group + ".jms",
                 "X-Kestra-Description": project.description,
                 "X-Kestra-Version": project.version
         )

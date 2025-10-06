@@ -1,0 +1,29 @@
+id: jms_consume_jndi.yaml
+namespace: at.conapi
+
+tasks:
+  - id: hello
+    type: io.kestra.plugin.core.log.Log
+    message: Hello World! 🚀
+
+  - id: jms-consume
+    type: io.kestra.plugin.jms.JMSConsumer
+    connectionFactoryConfig:
+      type: JNDI
+      jndiConnectionFactoryName: myCF
+      jndiInitialContextFactory: com.sonicsw.jndi.mfcontext.MFContextFactory
+      jndiProviderUrl: tcp://host.docker.internal:2506
+      connectionProperties:
+        com.sonicsw.jndi.mfcontext.domain: Domain1
+        java.naming.security.principal: Administrator
+        java.naming.security.credentials: Administrator
+    maxMessages: 1
+    maxWaitTimeout: 10000
+    #messageSelector: test = 1 #only consume messages with a property called test and an integer value of 1
+    destination:
+      destinationName: SampleQ1
+      destinationType: QUEUE
+
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ outputs["jms-consume"] }} '

@@ -1,0 +1,21 @@
+id: jms_trigger
+namespace: at.conapi
+
+triggers:
+  - id: jms-trigger
+    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
+      connectionProperties:
+        connectionURLs: tcp://host.docker.internal:2506
+    destination:
+      destinationName: SampleQ2
+      destinationType: QUEUE
+
+tasks:
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ trigger.data }}'

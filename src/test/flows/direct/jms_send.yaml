@@ -1,0 +1,27 @@
+id: jms_send
+namespace: at.conapi
+
+tasks:
+  - id: hello
+    type: io.kestra.plugin.core.log.Log
+    message: Hello World! 🚀
+
+  - id: jms-send
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+    # optionally you can specify specific jars to use for the JMS connection, by default jar files in the jms-libs sub folder of your plugins location will be added to the classpath
+     #providerJarPaths:
+      #- file:///app/plugins/jms-libs/sonic_Client.jar
+
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
+      connectionProperties:
+        connectionURLs: tcp://host.docker.internal:2506
+    destination:
+      destinationName: SampleQ1
+      destinationType: QUEUE
+    from: "Hello World"
+
+

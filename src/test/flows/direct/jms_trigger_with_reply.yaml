@@ -1,0 +1,40 @@
+id: jms_trigger
+namespace: at.conapi
+
+triggers:
+  - id: jms-trigger
+    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
+      connectionProperties:
+        connectionURLs: tcp://host.docker.internal:2506
+    destination:
+      destinationName: SampleQ2
+      destinationType: QUEUE
+
+tasks:
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ trigger.data }}'
+
+
+  - id: jms-send
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+      # optionally you can specify specific jars to use for the JMS connection, by default jar files in the jms-libs sub folder of your plugins location will be added to the classpath
+      #providerJarPaths:
+      #- file:///app/plugins/jms-libs/sonic_Client.jar
+
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
+      connectionProperties:
+        connectionURLs: tcp://host.docker.internal:2506
+    destination:
+      destinationName: '{{ trigger.replyTo }}'
+      destinationType: QUEUE
+    from: "Hello World"
