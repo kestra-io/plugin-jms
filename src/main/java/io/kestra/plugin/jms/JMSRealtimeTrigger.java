@@ -74,7 +74,10 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
     @Schema(title = "The destination to consume messages from.")
     private JMSDestination destination;
 
-    @Schema(title = "Message selector to only consume specific messages")
+    @Schema(
+            title = "Message selector to only consume specific messages.",
+            description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+    )
     private String messageSelector;
 
     @Builder.Default

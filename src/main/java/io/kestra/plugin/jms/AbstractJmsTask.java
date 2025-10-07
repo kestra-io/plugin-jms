@@ -6,6 +6,7 @@ import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.runners.RunContext;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,11 @@ import lombok.experimental.SuperBuilder;
 public abstract class AbstractJmsTask extends Task {
 
     @PluginProperty
-    private ConnectionFactoryConfig connectionFactoryConfig; // The ONLY connection property
+    @Schema(
+            title = "Connection factory configuration.",
+            description = "Configuration for connecting to the JMS broker. Supports both direct connection factory instantiation and JNDI lookup."
+    )
+    private ConnectionFactoryConfig connectionFactoryConfig;
 
     /**
      * Creates a JMS connection using the provided configuration but does NOT start it.

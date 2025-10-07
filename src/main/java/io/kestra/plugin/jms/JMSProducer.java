@@ -77,14 +77,17 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     private JMSDestination destination;
 
     @PluginProperty
+    @Builder.Default
     @Schema(title = "The JMS priority used to send the message (default: 4)")
     private Integer priority = 4;
 
     @PluginProperty
+    @Builder.Default
     @Schema(title = "The JMS delivery mode used to send the message (default: 2 = PERSISTENT)")
     private Integer deliveryMode = 2;
 
     @PluginProperty
+    @Builder.Default
     @Schema(title = "The time to live of the sent message in milliseconds (default: 0 = does not expire)")
     private Long timeToLive = 0L;
 
@@ -98,7 +101,11 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     private Object from;
 
     @Builder.Default
-    @Schema(title = "The serialization format for the message body.", defaultValue = "STRING")
+    @Schema(
+            title = "The serialization format for the message body.",
+            description = "Determines how message bodies are serialized. STRING for text messages, JSON for JSON-formatted text, BYTES for binary data.",
+            defaultValue = "STRING"
+    )
     private SerdeType serdeType = SerdeType.STRING;
 
     /**

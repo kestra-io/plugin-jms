@@ -59,7 +59,7 @@ import java.util.concurrent.atomic.AtomicInteger;
                         "    destination:",
                         "      name: my-queue",
                         "      destinationType: QUEUE",
-                        "    maxMessages: 1",
+                        "    maxMessages: 100",
                         "    maxWaitTimeout: 5000",
                 }
         )
@@ -73,52 +73,57 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
     private JMSDestination destination;
 
     @PluginProperty(dynamic = true)
-    @Schema(title = "Message selector to only consume specific messages")
+    @Schema(
+            title = "Message selector to only consume specific messages.",
+            description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+    )
     private String messageSelector;
 
     @PluginProperty
     @Builder.Default
-    @Schema(title = "The format for deserializing the message body.", defaultValue = "STRING")
+    @Schema(
+            title = "The format for deserializing the message body.",
+            description = "Determines how message bodies are deserialized. STRING for text messages, JSON for JSON-formatted text, BYTES for binary data.",
+            defaultValue = "STRING"
+    )
     private SerdeType serdeType = SerdeType.STRING;
 
     @PluginProperty
+    @Builder.Default
     @Schema(title = "The maximum number of messages to consume. (default 1)")
     private Integer maxMessages = 1;
 
     @PluginProperty
+    @Builder.Default
     @Schema(title = "The maximum time to wait for messages in milliseconds. (default 0, never times out)")
     private Long maxWaitTimeout = 0L;
 
     @Override
     public Output run(RunContext runContext) throws Exception {
 
-        // writing the message to a file, try to optimize i.e. 10000 messages
-        List<URI> uris = Collections.synchronizedList( new ArrayList<>() );
         AtomicInteger total = new AtomicInteger();
+        File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
+        URI uri;
 
-        try (
-                ConsumeRunner consumer = new ConsumeRunner(runContext, this)
-        ) {
+        try (ConsumeRunner consumer = new ConsumeRunner(runContext, this);
+             BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(tempFile))) {
+
             consumer.run(
                     Rethrow.throwConsumer(message -> {
-                        // dedicated temp file per message
-                        File tempFile = runContext.workingDir().createTempFile(".jms").toFile();
-
-                        try (BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(tempFile))){
-                            FileSerde.write(outputFile, message);
-                            outputFile.flush();
-                            uris.add(runContext.storage().putFile(tempFile));
-                            total.getAndIncrement();
-                        }
+                        FileSerde.write(outputFile, message);
+                        total.getAndIncrement();
                     }),
                     () -> this.ended(total)
             );
 
-            runContext.metric(Counter.of("records", total.get(), "destination", this.destination.getDestinationName()));
+            outputFile.flush();
+            runContext.metric(Counter.of("messages", total.get(), "destination", this.destination.getDestinationName()));
         }
 
+        uri = runContext.storage().putFile(tempFile);
+
         return Output.builder()
-                .messageURIs(uris)
+                .uri(uri)
                 .count(total.get())
                 .build();
     }
@@ -133,8 +138,8 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
         @Schema(title = "Number of messages consumed.")
         private final Integer count;
 
-        @Schema(title = "URIs of the files in Kestra's internal storage containing the consumed messages.")
-        private final List<URI> messageURIs;
+        @Schema(title = "URI of a Kestra internal storage file containing the consumed messages.")
+        private final URI uri;
     }
 
     /**
