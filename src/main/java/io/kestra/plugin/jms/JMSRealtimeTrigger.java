@@ -1,10 +1,10 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractDestination;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionFactoryAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConsumerAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.SessionAdapter;
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
+import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
+import at.conapi.oss.jms.adapter.impl.SessionAdapter;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
 import io.kestra.core.models.annotations.Example;

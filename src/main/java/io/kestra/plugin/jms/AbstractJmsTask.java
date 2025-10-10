@@ -1,7 +1,7 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionFactoryAdapter;
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.tasks.Task;

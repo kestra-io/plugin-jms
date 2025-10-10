@@ -1,7 +1,7 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.JmsFactory;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionFactoryAdapter;
+import at.conapi.oss.jms.adapter.JmsFactory;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.plugins.PluginClassLoader;
@@ -22,7 +22,13 @@ public class JMSConnectionFactory {
 
         // Step 2: Instantiate your common JmsFactory with the classloader
         // Pass the current plugin's classloader as parent to ensure proper JMS API delegation
-        JmsFactory jmsFactory = new JmsFactory(jarUrls.toArray(new URL[0]), this.getClass().getClassLoader());
+        // Use FilteredClassLoader only when explicitly enabled (for providers like SonicMQ that bundle JMS API classes)
+        boolean useFilteredClassLoader = config.getUseFilteredClassLoader() != null && config.getUseFilteredClassLoader();
+        JmsFactory jmsFactory = new JmsFactory(
+            jarUrls.toArray(new URL[0]),
+            this.getClass().getClassLoader(),
+            useFilteredClassLoader
+        );
 
         // Step 3: Delegate the creation logic to the JmsFactory
         if (config instanceof ConnectionFactoryConfig.Direct directConfig) {
@@ -96,11 +102,13 @@ public class JMSConnectionFactory {
      * The plugin location is obtained from the PluginClassLoader and must be a valid URI.
      * If the plugin is at /app/plugins/plugin-jms-1.0.jar and subfolderPath is "jms-libs",
      * this method will look for JARs in /app/plugins/jms-libs/
+     * <p>
+     * When not running in a plugin context (e.g., during tests), returns an empty list,
+     * allowing the JMS provider to be loaded from the current classloader.
      *
      * @param subfolderPath The name of the subfolder to look for (e.g., "jms-libs")
-     * @return List of URLs pointing to JAR files within the specified subfolder, or empty list if folder doesn't exist
+     * @return List of URLs pointing to JAR files within the specified subfolder, or empty list if folder doesn't exist or not in plugin context
      * @throws IOException if there's an error reading the directory or converting URIs to URLs
-     * @throws IllegalStateException if not called from within a Kestra plugin context
      * @throws IllegalArgumentException if the plugin location is not a valid URI
      */
     public List<URL> getNestedJarUrls(String subfolderPath) throws IOException {
@@ -108,7 +116,9 @@ public class JMSConnectionFactory {
         // Get the plugin class loader
         ClassLoader classLoader = this.getClass().getClassLoader();
         if (!(classLoader instanceof PluginClassLoader pluginClassLoader)) {
-            throw new IllegalStateException("This method must be called from within a Kestra plugin context");
+            // In test mode or when not running as a plugin, return empty list
+            // This will cause JmsFactory to use the current classloader which has the JMS provider on the classpath
+            return new ArrayList<>();
         }
 
         String pluginJarLocation = pluginClassLoader.location();

@@ -51,7 +51,7 @@ dependencies {
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
 
     // JMS utils
-    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.0"
+    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.1"
 }
 
 
@@ -70,6 +70,20 @@ testlogger {
     showPassedStandardStreams = false
     showSkippedStandardStreams = true
 }
+
+/**********************************************************************************************************************\
+ * Copy Test Libs for Examples
+ **********************************************************************************************************************/
+task copyTestLibs(type: Copy) {
+    description = 'Copies RabbitMQ JMS client libs to build/test-libs for manual testing examples'
+    from configurations.testRuntimeClasspath.filter {
+        it.name.contains('rabbitmq-jms') || it.name.contains('amqp-client')
+    }
+    into 'build/test-libs'
+}
+
+// Ensure copyTestLibs runs as part of the build process (even when tests are skipped)
+assemble.dependsOn copyTestLibs
 
 dependencies {
     // Platform
@@ -99,6 +113,9 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.hamcrest:hamcrest"
     testImplementation "org.hamcrest:hamcrest-library"
+
+    // RabbitMQ JMS client for integration tests
+    testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.4.0"
 }
 
 /**********************************************************************************************************************\

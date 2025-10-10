@@ -1,4 +1,4 @@
-id: jms_consume_jndi.yaml
+id: jms_consume
 namespace: at.conapi
 
 tasks:
@@ -9,14 +9,14 @@ tasks:
   - id: jms-consume
     type: io.kestra.plugin.jms.JMSConsumer
     connectionFactoryConfig:
-      type: JNDI
-      jndiConnectionFactoryName: myCF
-      jndiInitialContextFactory: com.sonicsw.jndi.mfcontext.MFContextFactory
-      jndiProviderUrl: tcp://host.docker.internal:2506
+      type: DIRECT
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
       connectionProperties:
-        com.sonicsw.jndi.mfcontext.domain: Domain1
-        java.naming.security.principal: Administrator
-        java.naming.security.credentials: Administrator
+        connectionURLs: tcp://host.docker.internal:2506
     maxMessages: 1
     maxWaitTimeout: 10000
     #messageSelector: test = 1 #only consume messages with a property called test and an integer value of 1

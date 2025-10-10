@@ -1,6 +1,6 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.AbstractDestination;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

@@ -1,7 +1,8 @@
 version: "3.8"
+name: kestra-jms-sonicmq
 
 services:
-  app:
+  kestra:
     image: kestra/kestra:v1.0.3
     #build:
     #  context: .
@@ -16,7 +17,7 @@ services:
       - "8080:8080"
       - "7999:7999"
     volumes:
-      - ../build/libs/:/app/plugins/
+      - ../../../build/libs/:/app/plugins/
       - /Users/stefan/sonic/12.0.4/MQ12.0/lib/:/app/plugins/jms-libs/ # example for testing, replace with your libs
     #environment:
     #   - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7999

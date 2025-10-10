@@ -6,6 +6,8 @@ triggers:
     type: io.kestra.plugin.jms.JMSRealtimeTrigger
     connectionFactoryConfig:
       type: DIRECT
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
       connectionFactoryClass: progress.message.jclient.ConnectionFactory
       username: Administrator
       password: Administrator
@@ -25,6 +27,8 @@ tasks:
     type: io.kestra.plugin.jms.JMSProducer
     connectionFactoryConfig:
       type: DIRECT
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
       # optionally you can specify specific jars to use for the JMS connection, by default jar files in the jms-libs sub folder of your plugins location will be added to the classpath
       #providerJarPaths:
       #- file:///app/plugins/jms-libs/sonic_Client.jar

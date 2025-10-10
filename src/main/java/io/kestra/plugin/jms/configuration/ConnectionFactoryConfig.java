@@ -57,6 +57,16 @@ public abstract class ConnectionFactoryConfig {
     @PluginProperty(dynamic =true)
     private Map<String, String> connectionProperties;
 
+    @Schema(
+            title = "Use Filtered ClassLoader",
+            description = "Enable this for JMS providers that bundle JMS API classes in their JAR (e.g., SonicMQ/Aurea Messenger). " +
+                    "When enabled, JMS API classes are loaded from the parent classloader to prevent ClassCastException. " +
+                    "Leave disabled (default: false) for well-behaved providers like RabbitMQ, ActiveMQ, Artemis, etc. " +
+                    "Only enable this if you encounter ClassCastException with javax.jms or jakarta.jms classes."
+    )
+    @PluginProperty
+    private Boolean useFilteredClassLoader;
+
     // --- Nested subclasses ---
 
     @Getter

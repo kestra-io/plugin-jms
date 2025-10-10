@@ -1,0 +1,50 @@
+version: "3.8"
+name: kestra-jms-rabbitmq
+
+# Default Docker Compose setup with RabbitMQ (quick-start)
+#
+# USAGE:
+# 1. Build the plugin (skips tests to avoid port conflicts):
+#    ./gradlew build -x test
+#
+# 2. Start the services:
+#    docker-compose -f src/examples/docker/docker-compose.yml up
+#
+# 3. (Optional) Run tests once RabbitMQ is up:
+#    ./gradlew test
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI (http://localhost:15672, guest/guest)
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kestra:
+    image: kestra/kestra:latest
+    entrypoint: /bin/sh -c "
+      cd /app/ && \
+      ./kestra plugins install io.kestra.plugin:plugin-serdes:LATEST && \
+      ./kestra plugins install io.kestra.plugin:plugin-transform-json:LATEST && \
+      ./kestra server local"
+    ports:
+      - "8080:8080"      # Kestra UI
+      - "7999:7999"      # Debug port (optional)
+    volumes:
+      - ../../../build/libs/:/app/plugins/
+      # Mount RabbitMQ JMS client libs (automatically copied during build)
+      - ../../../build/test-libs/:/app/plugins/jms-libs/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    #environment:
+    #   - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7999

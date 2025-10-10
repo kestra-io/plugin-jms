@@ -6,6 +6,8 @@ triggers:
     type: io.kestra.plugin.jms.JMSRealtimeTrigger
     connectionFactoryConfig:
       type: DIRECT
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
       connectionFactoryClass: progress.message.jclient.ConnectionFactory
       username: Administrator
       password: Administrator

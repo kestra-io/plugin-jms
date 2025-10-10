@@ -79,6 +79,8 @@ Can be used at task level inside a flow to send a JMS messages to a queue or a t
 - Docker
 
 ### Running tests
+Ensure you have RabbitMQ running. i.e using the example docker compose.
+
 ```
 ./gradlew check --parallel
 ```

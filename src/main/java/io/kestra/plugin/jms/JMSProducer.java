@@ -1,12 +1,12 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractDestination;
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractMessage;
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractProducer;
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractSession;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.ProducerAdapter;
-import at.conapi.plugins.common.endpoints.jms.adapter.impl.SessionAdapter;
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.AbstractMessage;
+import at.conapi.oss.jms.adapter.AbstractProducer;
+import at.conapi.oss.jms.adapter.AbstractSession;
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ProducerAdapter;
+import at.conapi.oss.jms.adapter.impl.SessionAdapter;
 import io.kestra.plugin.jms.serde.SerdeType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.kestra.core.models.annotations.Example;
@@ -214,10 +214,16 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
                 return Flux.just(JMSMessage.builder().data(fromRendered).build());
             }
         } else if (this.from instanceof List fromList) {
-            @SuppressWarnings("unchecked")
-            List<Object> renderedList = runContext.render(fromList);
-            List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(renderedList, new TypeReference<>() {});
-            return Flux.fromIterable(messageList);
+            try {
+                @SuppressWarnings("unchecked")
+                List<Object> renderedList = runContext.render(fromList);
+                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(renderedList, new TypeReference<>() {});
+                return Flux.fromIterable(messageList);
+            } catch (ClassCastException e) {
+                // If rendering fails (e.g., list contains complex objects without template variables), use the original list
+                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(fromList, new TypeReference<>() {});
+                return Flux.fromIterable(messageList);
+            }
         } else if (this.from instanceof Map fromMap) {
             @SuppressWarnings("unchecked")
             Map<String, Object> renderedMap = runContext.render((Map<String, Object>) fromMap);

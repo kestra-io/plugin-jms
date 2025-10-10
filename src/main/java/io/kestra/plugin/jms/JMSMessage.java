@@ -1,8 +1,8 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractDestination;
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractJMSException;
-import at.conapi.plugins.common.endpoints.jms.adapter.AbstractMessage;
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.AbstractJMSException;
+import at.conapi.oss.jms.adapter.AbstractMessage;
 import io.kestra.plugin.jms.serde.SerdeType;
 import io.kestra.core.models.tasks.Output;
 import io.swagger.v3.oas.annotations.media.Schema;

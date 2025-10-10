@@ -1,15 +1,13 @@
-id: jms_send_jndi
+id: jms_trigger_jndi
 namespace: at.conapi
 
-tasks:
-  - id: hello
-    type: io.kestra.plugin.core.log.Log
-    message: Hello World! 🚀
-
-  - id: jms-send
-    type: io.kestra.plugin.jms.JMSProducer
+triggers:
+  - id: jms-trigger
+    type: io.kestra.plugin.jms.JMSRealtimeTrigger
     connectionFactoryConfig:
       type: JNDI
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
       jndiConnectionFactoryName: myCF
       jndiInitialContextFactory: com.sonicsw.jndi.mfcontext.MFContextFactory
       jndiProviderUrl: tcp://host.docker.internal:2506
@@ -18,6 +16,10 @@ tasks:
         java.naming.security.principal: Administrator
         java.naming.security.credentials: Administrator
     destination:
-      destinationName: SampleQ1
+      destinationName: SampleQ2
       destinationType: QUEUE
-    from: Hello JNDI
+
+tasks:
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ trigger.data }}'
