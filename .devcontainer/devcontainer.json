@@ -1,10 +1,10 @@
 {
-  "name": "plugin-template",
+  "name": "plugin-jms",
   "build": {
     "context": ".",
     "dockerfile": "Dockerfile"
   },
-  "workspaceFolder": "/workspaces/plugin-template",
+  "workspaceFolder": "/workspaces/plugin-jms",
   "forwardPorts": [8080],
   "customizations": {
     "vscode": {
