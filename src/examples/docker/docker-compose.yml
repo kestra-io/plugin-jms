@@ -33,16 +33,15 @@ services:
     image: kestra/kestra:latest
     entrypoint: /bin/sh -c "
       cd /app/ && \
-      ./kestra plugins install io.kestra.plugin:plugin-serdes:LATEST && \
-      ./kestra plugins install io.kestra.plugin:plugin-transform-json:LATEST && \
       ./kestra server local"
     ports:
       - "8080:8080"      # Kestra UI
       - "7999:7999"      # Debug port (optional)
     volumes:
-      - ../../../build/libs/:/app/plugins/
+      # Mount only the JMS plugin JAR (version-neutral name created by build)
+      - ../../../build/libs/plugin-jms-docker.jar:/app/plugins/plugin-jms.jar:ro
       # Mount RabbitMQ JMS client libs (automatically copied during build)
-      - ../../../build/test-libs/:/app/plugins/jms-libs/
+      - ../../../build/test-libs/:/app/plugins/jms-libs/:ro
     depends_on:
       rabbitmq:
         condition: service_healthy

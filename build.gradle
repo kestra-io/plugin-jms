@@ -50,7 +50,7 @@ dependencies {
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
 
-    // JMS utils
+    // JMS adapter
     implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.1"
 }
 
@@ -84,6 +84,16 @@ task copyTestLibs(type: Copy) {
 
 // Ensure copyTestLibs runs as part of the build process (even when tests are skipped)
 assemble.dependsOn copyTestLibs
+
+task copyPluginForDocker(type: Copy) {
+    description = 'Creates version-neutral copy of plugin JAR for Docker mounting'
+    from shadowJar
+    into 'build/libs'
+    rename { 'plugin-jms-docker.jar' }
+}
+
+// Ensure copyPluginForDocker runs after assembling (shadowJar is part of assemble)
+assemble.finalizedBy copyPluginForDocker
 
 dependencies {
     // Platform
