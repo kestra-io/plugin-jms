@@ -7,6 +7,7 @@ import at.conapi.oss.jms.adapter.AbstractSession;
 import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
 import at.conapi.oss.jms.adapter.impl.ProducerAdapter;
 import at.conapi.oss.jms.adapter.impl.SessionAdapter;
+import io.kestra.core.models.property.Property;
 import io.kestra.plugin.jms.serde.SerdeType;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.kestra.core.models.annotations.Example;
@@ -71,25 +72,21 @@ import java.util.Map;
 })
 public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output> {
 
-    @PluginProperty
     @NotNull
     @Schema(title = "The destination to send messages to.")
-    private JMSDestination destination;
+    private Property<JMSDestination> destination;
 
-    @PluginProperty
     @Builder.Default
     @Schema(title = "The JMS priority used to send the message (default: 4)")
-    private Integer priority = 4;
+    private Property<Integer> priority = Property.ofValue(4);
 
-    @PluginProperty
     @Builder.Default
     @Schema(title = "The JMS delivery mode used to send the message (default: 2 = PERSISTENT)")
-    private Integer deliveryMode = 2;
+    private Property<Integer> deliveryMode = Property.ofValue(2);
 
-    @PluginProperty
     @Builder.Default
     @Schema(title = "The time to live of the sent message in milliseconds (default: 0 = does not expire)")
-    private Long timeToLive = 0L;
+    private Property<Long> timeToLive = Property.ofValue(0L);
 
     @PluginProperty(dynamic = true)
     @NotNull
@@ -120,15 +117,16 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     @Override
     public Output run(RunContext runContext) throws Exception {
         int messageCount;
+        var rDestination = runContext.render(this.destination).as(JMSDestination.class).orElseThrow();
 
         try (
                 ConnectionAdapter connection = this.createConnection(runContext);
                 SessionAdapter session = (SessionAdapter) connection.createSession()
         ) {
-            String destName = runContext.render(this.destination.getDestinationName());
-            String destType = this.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ?
+            String rDestName = runContext.render(rDestination.getDestinationName());
+            String rDestType = runContext.render(rDestination.getDestinationType()).as(AbstractDestination.DestinationType.class).orElseThrow() == AbstractDestination.DestinationType.QUEUE ?
                     SessionAdapter.QUEUE : SessionAdapter.TOPIC;
-            String destinationUrl = String.format("%s://%s", destType, destName);
+            String destinationUrl = String.format("%s://%s", rDestType, rDestName);
             AbstractDestination jmsDestination = session.createDestination(destinationUrl);
 
             try (ProducerAdapter producer = (ProducerAdapter) session.createProducer(jmsDestination)) {
@@ -136,7 +134,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
                 messageCount = messages
                         .map(message -> {
                             try {
-                                this.send(session, producer, message);
+                                this.send(session, producer, message, runContext);
                                 return 1;
                             } catch (Exception e) {
                                 runContext.logger().error("Failed to send JMS message", e);
@@ -149,7 +147,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
             }
         }
 
-        runContext.metric(Counter.of("records", messageCount, "destination", this.destination.getDestinationName()));
+        runContext.metric(Counter.of("records", messageCount, "destination", rDestination.getDestinationName()));
         return Output.builder().messagesCount(messageCount).build();
     }
 
@@ -158,12 +156,13 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
      * and sends it using the given producer. It now supports creating different
      * message types based on the SerdeType.
      *
-     * @param session The active AbstractSession, used to create the JMS message.
-     * @param producer The active AbstractProducer used to send the message.
-     * @param message The Kestra JMSMessage to be sent.
+     * @param session    The active AbstractSession, used to create the JMS message.
+     * @param producer   The active AbstractProducer used to send the message.
+     * @param message    The Kestra JMSMessage to be sent.
+     * @param runContext The Kestra run context
      * @throws Exception if serialization or sending fails.
      */
-    private void send(AbstractSession session, AbstractProducer producer, JMSMessage message) throws Exception {
+    private void send(AbstractSession session, AbstractProducer producer, JMSMessage message, RunContext runContext) throws Exception {
         AbstractMessage jmsMessage = switch (this.serdeType) {
             case STRING -> {
                 String stringBody = message.getData() != null ? message.getData().toString() : null;
@@ -183,7 +182,11 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
             default -> throw new IllegalStateException("Unexpected SerdeType: " + this.serdeType);
         };
 
-        producer.send(jmsMessage, deliveryMode, priority, timeToLive);
+        var rDeliveryMode = runContext.render(deliveryMode).as(Integer.class).orElseThrow();
+        var rPriority = runContext.render(priority).as(Integer.class).orElseThrow();
+        var rTimeToLive = runContext.render(timeToLive).as(Long.class).orElseThrow();
+
+        producer.send(jmsMessage, rDeliveryMode, rPriority, rTimeToLive);
     }
 
     /**
@@ -196,13 +199,13 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
      */
     private Flux<JMSMessage> processFrom(RunContext runContext) throws Exception {
         if (this.from instanceof String fromString) {
-            String fromRendered = runContext.render(fromString);
+            String rFromString = runContext.render(fromString);
             URI uri;
             try {
-                uri = new URI(fromRendered);
+                uri = new URI(rFromString);
             } catch (Exception e) {
                 // Not a valid URI, treat as a raw string message
-                return Flux.just(JMSMessage.builder().data(fromRendered).build());
+                return Flux.just(JMSMessage.builder().data(rFromString).build());
             }
 
             if (uri.getScheme() != null && uri.getScheme().equals("kestra")) {
@@ -211,13 +214,13 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
                             .map(Rethrow.throwFunction(line -> JacksonMapper.ofIon().readValue(line, JMSMessage.class)));
                 }
             } else { // It's a single string message (that might look like a URI but isn't a kestra one)
-                return Flux.just(JMSMessage.builder().data(fromRendered).build());
+                return Flux.just(JMSMessage.builder().data(rFromString).build());
             }
         } else if (this.from instanceof List fromList) {
             try {
                 @SuppressWarnings("unchecked")
-                List<Object> renderedList = runContext.render(fromList);
-                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(renderedList, new TypeReference<>() {});
+                List<Object> rFromList = runContext.render(fromList);
+                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(rFromList, new TypeReference<>() {});
                 return Flux.fromIterable(messageList);
             } catch (ClassCastException e) {
                 // If rendering fails (e.g., list contains complex objects without template variables), use the original list
@@ -226,8 +229,8 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
             }
         } else if (this.from instanceof Map fromMap) {
             @SuppressWarnings("unchecked")
-            Map<String, Object> renderedMap = runContext.render((Map<String, Object>) fromMap);
-            JMSMessage message = JacksonMapper.ofIon().convertValue(renderedMap, JMSMessage.class);
+            Map<String, Object> rFromMap = runContext.render((Map<String, Object>) fromMap);
+            JMSMessage message = JacksonMapper.ofIon().convertValue(rFromMap, JMSMessage.class);
             return Flux.just(message);
         }
 

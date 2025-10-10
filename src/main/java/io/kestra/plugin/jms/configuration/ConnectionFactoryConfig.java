@@ -7,8 +7,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import io.kestra.core.models.annotations.PluginProperty;
+import io.kestra.core.models.property.Property;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
@@ -57,15 +59,16 @@ public abstract class ConnectionFactoryConfig {
     @PluginProperty(dynamic =true)
     private Map<String, String> connectionProperties;
 
+    @Builder.Default
     @Schema(
             title = "Use Filtered ClassLoader",
             description = "Enable this for JMS providers that bundle JMS API classes in their JAR (e.g., SonicMQ/Aurea Messenger). " +
                     "When enabled, JMS API classes are loaded from the parent classloader to prevent ClassCastException. " +
                     "Leave disabled (default: false) for well-behaved providers like RabbitMQ, ActiveMQ, Artemis, etc. " +
-                    "Only enable this if you encounter ClassCastException with javax.jms or jakarta.jms classes."
+                    "Only enable this if you encounter ClassCastException with javax.jms or jakarta.jms classes.",
+            defaultValue = "false"
     )
-    @PluginProperty
-    private Boolean useFilteredClassLoader;
+    private Property<Boolean> useFilteredClassLoader = Property.ofValue(false);
 
     // --- Nested subclasses ---
 
@@ -78,9 +81,8 @@ public abstract class ConnectionFactoryConfig {
                 description = "The fully qualified class name of the JMS ConnectionFactory.",
                 examples = {"org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"}
         )
-        @PluginProperty(dynamic = false)
         @NotNull
-        private String connectionFactoryClass;
+        private Property<String> connectionFactoryClass;
 
         @JsonPOJOBuilder(withPrefix = "")
         public static class DirectBuilderImpl extends Direct.DirectBuilder<Direct, DirectBuilderImpl> {}
@@ -94,28 +96,23 @@ public abstract class ConnectionFactoryConfig {
                 title = "JNDI Initial Context Factory",
                 example = "org.wildfly.naming.client.WildFlyInitialContextFactory"
         )
-        @PluginProperty(dynamic = false)
         @NotNull
-        private String jndiInitialContextFactory;
+        private Property<String> jndiInitialContextFactory;
 
         @Schema(title = "JNDI Provider URL", example = "remote+http://localhost:8080")
-        @PluginProperty(dynamic = false)
         @NotNull
-        private String jndiProviderUrl;
+        private Property<String> jndiProviderUrl;
 
         @Schema(title = "JNDI Principal", example = "Administrator")
-        @PluginProperty(dynamic = false)
-        private String jndiPrincipal;
+        private Property<String> jndiPrincipal;
 
         @Schema(title = "JNDI Credentials", example = "password")
-        @PluginProperty(dynamic = false)
-        private String jndiCredentials;
+        private Property<String> jndiCredentials;
 
 
         @Schema(title = "JNDI Connection Factory Name", example = "jms/RemoteConnectionFactory")
-        @PluginProperty(dynamic = false)
         @NotNull
-        private String jndiConnectionFactoryName;
+        private Property<String> jndiConnectionFactoryName;
 
         @JsonPOJOBuilder(withPrefix = "")
         public static class JndiBuilderImpl extends Jndi.JndiBuilder<Jndi, JndiBuilderImpl> {}

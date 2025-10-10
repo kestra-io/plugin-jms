@@ -9,9 +9,9 @@ import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
-import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.conditions.ConditionContext;
 import io.kestra.core.models.executions.Execution;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.models.triggers.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
@@ -65,14 +65,12 @@ import java.util.Optional;
 )
 public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTriggerInterface, TriggerOutput<JMSMessage> {
 
-    @PluginProperty
     @NotNull
-    private ConnectionFactoryConfig connectionFactoryConfig;
+    private Property<ConnectionFactoryConfig> connectionFactoryConfig;
 
-    @PluginProperty
     @NotNull
     @Schema(title = "The destination to consume messages from.")
-    private JMSDestination destination;
+    private Property<JMSDestination> destination;
 
     @Schema(
             title = "Message selector to only consume specific messages.",
@@ -82,7 +80,7 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
 
     @Builder.Default
     @Schema(title = "The format for deserializing the message body.", defaultValue = "STRING")
-    private SerdeType serdeType = SerdeType.STRING;
+    private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
     @Override
     public Publisher<Execution> evaluate(ConditionContext conditionContext, TriggerContext context) {
@@ -93,7 +91,12 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
                 // The runContext is needed for rendering variables in the configuration.
                 var runContext = conditionContext.getRunContext();
 
-                jmsListener = new JmsListener(runContext, connectionFactoryConfig, destination, messageSelector, serdeType, emitter::next, emitter::error);
+                // Render Property fields
+                ConnectionFactoryConfig rConnectionFactoryConfig = runContext.render(connectionFactoryConfig).as(ConnectionFactoryConfig.class).orElseThrow();
+                JMSDestination rDestination = runContext.render(destination).as(JMSDestination.class).orElseThrow();
+                SerdeType rSerdeType = runContext.render(serdeType).as(SerdeType.class).orElseThrow();
+
+                jmsListener = new JmsListener(runContext, rConnectionFactoryConfig, rDestination, messageSelector, rSerdeType, emitter::next, emitter::error);
                 jmsListener.start();
 
                 // onDispose is a crucial hook that Kestra calls when the trigger is disabled or the flow is deleted.
@@ -147,18 +150,18 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
             JMSConnectionFactory factoryService = new JMSConnectionFactory();
             ConnectionFactoryAdapter factory = factoryService.create(runContext, this.connectionFactoryConfig);
 
-            String username = this.connectionFactoryConfig.getUsername() != null ? runContext.render(this.connectionFactoryConfig.getUsername()) : null;
-            String password = this.connectionFactoryConfig.getPassword() != null ? runContext.render(this.connectionFactoryConfig.getPassword()) : null;
+            String rUsername = this.connectionFactoryConfig.getUsername() != null ? runContext.render(this.connectionFactoryConfig.getUsername()) : null;
+            String rPassword = this.connectionFactoryConfig.getPassword() != null ? runContext.render(this.connectionFactoryConfig.getPassword()) : null;
 
-            this.connection = (ConnectionAdapter) (username != null ? factory.createConnection(username, password) : factory.createConnection());
+            this.connection = (ConnectionAdapter) (rUsername != null ? factory.createConnection(rUsername, rPassword) : factory.createConnection());
 
             this.connection.setExceptionListener(errorConsumer::accept);
 
             SessionAdapter session = (SessionAdapter) connection.createSession();
 
-            String destName = runContext.render(destination.getDestinationName());
-            String destType = destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
-            String destinationUrl = String.format("%s://%s", destType, destName);
+            String rDestName = runContext.render(destination.getDestinationName());
+            String rDestType = runContext.render(destination.getDestinationType()).as(AbstractDestination.DestinationType.class).orElseThrow() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
+            String destinationUrl = String.format("%s://%s", rDestType, rDestName);
             AbstractDestination jmsDestination = session.createDestination(destinationUrl);
 
             ConsumerAdapter consumer = (ConsumerAdapter) session.createConsumer(jmsDestination, messageSelector);
@@ -173,7 +176,7 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
             });
 
             connection.start();
-            runContext.logger().info("JMS trigger listener started for destination '{}'", destName);
+            runContext.logger().info("JMS trigger listener started for destination '{}'", rDestName);
         }
 
         public void close() {

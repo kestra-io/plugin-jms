@@ -23,11 +23,11 @@ public class JMSConnectionFactory {
         // Step 2: Instantiate your common JmsFactory with the classloader
         // Pass the current plugin's classloader as parent to ensure proper JMS API delegation
         // Use FilteredClassLoader only when explicitly enabled (for providers like SonicMQ that bundle JMS API classes)
-        boolean useFilteredClassLoader = config.getUseFilteredClassLoader() != null && config.getUseFilteredClassLoader();
+        boolean rUseFilteredClassLoader = runContext.render(config.getUseFilteredClassLoader()).as(Boolean.class).orElse(false);
         JmsFactory jmsFactory = new JmsFactory(
             jarUrls.toArray(new URL[0]),
             this.getClass().getClassLoader(),
-            useFilteredClassLoader
+            rUseFilteredClassLoader
         );
 
         // Step 3: Delegate the creation logic to the JmsFactory
@@ -57,8 +57,8 @@ public class JMSConnectionFactory {
 
         List<URL> jarUrls = new ArrayList<>();
         for (String path : providerJarPaths) {
-            String renderedPath = runContext.render(path);
-            URI uri = new URI(renderedPath);
+            String rRenderedPath = runContext.render(path);
+            URI uri = new URI(rRenderedPath);
             jarUrls.add(uri.toURL());
         }
         return jarUrls;
@@ -71,20 +71,29 @@ public class JMSConnectionFactory {
                 properties.put(entry.getKey(), runContext.render(entry.getValue()));
             }
         }
-        return (ConnectionFactoryAdapter) jmsFactory.createConnectionFactory(config.getConnectionFactoryClass(), properties);
+        String rConnectionFactoryClass = runContext.render(config.getConnectionFactoryClass()).as(String.class).orElseThrow();
+        return (ConnectionFactoryAdapter) jmsFactory.createConnectionFactory(rConnectionFactoryClass, properties);
     }
 
     private ConnectionFactoryAdapter createJndiConnectionFactory(RunContext runContext, ConnectionFactoryConfig.Jndi config, JmsFactory jmsFactory) throws Exception {
         Hashtable<String, String> jndiProperties = new Hashtable<>();
-        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, config.getJndiInitialContextFactory());
-        jndiProperties.put(Context.PROVIDER_URL, runContext.render(config.getJndiProviderUrl()));
+        String rJndiInitialContextFactory = runContext.render(config.getJndiInitialContextFactory()).as(String.class).orElseThrow();
+        String rJndiProviderUrl = runContext.render(config.getJndiProviderUrl()).as(String.class).orElseThrow();
+        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, rJndiInitialContextFactory);
+        jndiProperties.put(Context.PROVIDER_URL, rJndiProviderUrl);
 
         // credentials for the JNDI lookup can be set via plugin properties, or via the connection properties directly
         if(config.getJndiPrincipal() != null) {
-            jndiProperties.put(Context.SECURITY_PRINCIPAL, config.getJndiPrincipal());
+            String rJndiPrincipal = runContext.render(config.getJndiPrincipal()).as(String.class).orElse(null);
+            if (rJndiPrincipal != null) {
+                jndiProperties.put(Context.SECURITY_PRINCIPAL, rJndiPrincipal);
+            }
         }
         if(config.getJndiCredentials() != null) {
-            jndiProperties.put(Context.SECURITY_CREDENTIALS, config.getJndiCredentials());
+            String rJndiCredentials = runContext.render(config.getJndiCredentials()).as(String.class).orElse(null);
+            if (rJndiCredentials != null) {
+                jndiProperties.put(Context.SECURITY_CREDENTIALS, rJndiCredentials);
+            }
         }
 
         if (config.getConnectionProperties() != null) {
@@ -93,7 +102,8 @@ public class JMSConnectionFactory {
             }
         }
 
-        return (ConnectionFactoryAdapter) jmsFactory.lookupConnectionFactory(jndiProperties, config.getJndiConnectionFactoryName());
+        String rJndiConnectionFactoryName = runContext.render(config.getJndiConnectionFactoryName()).as(String.class).orElseThrow();
+        return (ConnectionFactoryAdapter) jmsFactory.lookupConnectionFactory(jndiProperties, rJndiConnectionFactoryName);
     }
 
     /**
