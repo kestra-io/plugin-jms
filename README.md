@@ -50,11 +50,14 @@ Alternatively you can specify the jar file location as part of the trigger/task 
 
 Configuration examples are provided in the test/resources [flows](https://github.com/kestra-io/plugin-jms/tree/main/src/test/resources/flows) location.
 
+For simple testing of the plugin, we highly recommend [Message Manager] (https://conapi.at/message-manager/)
+
+**_NOTE:_** As a Kestra user you get a free 12 months Professional license of Message Manager. Use the contact form on the conapi website.
+
 There are also some blogs with instructions and a video demo available:
 
 - https://conapi.at/gravitee-kestra-integration-apis-workflows/
 - https://conapi.at/kestra-jms-integration-trigger-send-receive/
-
 
 This repository contains three different plugins:
 

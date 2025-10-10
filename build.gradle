@@ -50,13 +50,8 @@ dependencies {
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
 
-    // jms APIs
-    implementation group: "jakarta.jms", name: "jakarta.jms-api", version: "3.1.0"
-    implementation group: "javax.jms", name: "javax.jms-api", version: "2.0.1"
-
     // JMS utils
-    implementation group: "at.conapi.plugins", name: "common", version: "1.0.0-SNAPSHOT"
-
+    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.0"
 }
 
 

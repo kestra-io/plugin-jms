@@ -21,7 +21,8 @@ public class JMSConnectionFactory {
         List<URL> jarUrls = resolveProviderJarUrls(runContext, config.getProviderJarPaths());
 
         // Step 2: Instantiate your common JmsFactory with the classloader
-        JmsFactory jmsFactory = new JmsFactory(jarUrls.toArray(new URL[0]));
+        // Pass the current plugin's classloader as parent to ensure proper JMS API delegation
+        JmsFactory jmsFactory = new JmsFactory(jarUrls.toArray(new URL[0]), this.getClass().getClassLoader());
 
         // Step 3: Delegate the creation logic to the JmsFactory
         if (config instanceof ConnectionFactoryConfig.Direct directConfig) {
@@ -91,33 +92,37 @@ public class JMSConnectionFactory {
 
     /**
      * Extracts JAR URLs from a subfolder in the same directory as the plugin JAR.
+     * <p>
+     * The plugin location is obtained from the PluginClassLoader and must be a valid URI.
+     * If the plugin is at /app/plugins/plugin-jms-1.0.jar and subfolderPath is "jms-libs",
+     * this method will look for JARs in /app/plugins/jms-libs/
      *
      * @param subfolderPath The name of the subfolder to look for (e.g., "jms-libs")
-     * @return List of URLs pointing to JAR files within the specified subfolder
-     * @throws IOException if there's an error reading the directory
+     * @return List of URLs pointing to JAR files within the specified subfolder, or empty list if folder doesn't exist
+     * @throws IOException if there's an error reading the directory or converting URIs to URLs
+     * @throws IllegalStateException if not called from within a Kestra plugin context
+     * @throws IllegalArgumentException if the plugin location is not a valid URI
      */
     public List<URL> getNestedJarUrls(String subfolderPath) throws IOException {
-        List<URL> jarUrls = new ArrayList<>();
 
         // Get the plugin class loader
         ClassLoader classLoader = this.getClass().getClassLoader();
-        if (!(classLoader instanceof PluginClassLoader)) {
+        if (!(classLoader instanceof PluginClassLoader pluginClassLoader)) {
             throw new IllegalStateException("This method must be called from within a Kestra plugin context");
         }
 
-        PluginClassLoader pluginClassLoader = (PluginClassLoader) classLoader;
         String pluginJarLocation = pluginClassLoader.location();
 
-        // Find the main plugin JAR URL
-        URL pluginJarUrl = new URL(pluginJarLocation);
-
-        if (pluginJarUrl == null) {
-            throw new IllegalStateException("Could not find plugin JAR URL");
+        // Find the main plugin JAR URL - use URI.create().toURL() instead of deprecated URL constructor
+        URL pluginJarUrl;
+        try {
+            pluginJarUrl = URI.create(pluginJarLocation).toURL();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid plugin location URI: " + pluginJarLocation, e);
         }
 
         // Extract JARs from filesystem folder
-        jarUrls.addAll(extractFromFilesystemFolder(pluginJarUrl, subfolderPath));
-        return jarUrls;
+        return new ArrayList<>(extractFromFilesystemFolder(pluginJarUrl, subfolderPath));
     }
 
     /**
