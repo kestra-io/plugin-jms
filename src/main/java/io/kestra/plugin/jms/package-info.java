@@ -1,7 +1,7 @@
 @PluginSubGroup(
     title = "JMS plugin",
     description = "JMS messaging support plugins Trigger/Consumer/Producer",
-    categories = PluginSubGroup.PluginCategory.TOOL
+    categories = PluginSubGroup.PluginCategory.MESSAGING
 )
 package io.kestra.plugin.jms;
 
