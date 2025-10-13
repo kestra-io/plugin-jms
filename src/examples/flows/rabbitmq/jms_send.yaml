@@ -1,4 +1,4 @@
-id: jms_send_rabbitmq
+id: jms_produce_rabbitmq
 namespace: io.kestra.examples
 
 description: |
