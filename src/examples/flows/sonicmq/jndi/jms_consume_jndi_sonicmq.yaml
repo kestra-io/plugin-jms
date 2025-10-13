@@ -1,13 +1,10 @@
-id: jms_send_jndi
+id: jms_consume_jndi_sonicmq
 namespace: at.conapi
 
 tasks:
-  - id: hello
-    type: io.kestra.plugin.core.log.Log
-    message: Hello World! 🚀
 
-  - id: jms-send
-    type: io.kestra.plugin.jms.JMSProducer
+  - id: jms-consume
+    type: io.kestra.plugin.jms.JMSConsumer
     connectionFactoryConfig:
       type: JNDI
       # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
@@ -19,7 +16,13 @@ tasks:
         com.sonicsw.jndi.mfcontext.domain: Domain1
         java.naming.security.principal: Administrator
         java.naming.security.credentials: Administrator
+    maxMessages: 1
+    maxWaitTimeout: 10000
+    #messageSelector: test = 1 #only consume messages with a property called test and an integer value of 1
     destination:
       destinationName: SampleQ1
       destinationType: QUEUE
-    from: Hello JNDI
+
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ outputs["jms-consume"] }} '

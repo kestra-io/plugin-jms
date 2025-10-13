@@ -1,10 +1,7 @@
-id: jms_send
+id: jms_produce_sonicmq
 namespace: at.conapi
 
 tasks:
-  - id: hello
-    type: io.kestra.plugin.core.log.Log
-    message: Hello World! 🚀
 
   - id: jms-send
     type: io.kestra.plugin.jms.JMSProducer

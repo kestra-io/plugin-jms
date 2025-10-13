@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
 
 import java.io.BufferedReader;
@@ -117,6 +118,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     @Override
     public Output run(RunContext runContext) throws Exception {
         int messageCount;
+        Logger logger = runContext.logger();
         var rDestination = runContext.render(this.destination).as(JMSDestination.class).orElseThrow();
 
         try (
@@ -135,9 +137,13 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
                         .map(message -> {
                             try {
                                 this.send(session, producer, message, runContext);
+                                logger.debug(
+                                    "Successfully sent JMS message to {}",
+                                    destinationUrl
+                                );
                                 return 1;
                             } catch (Exception e) {
-                                runContext.logger().error("Failed to send JMS message", e);
+                                logger.error("Failed to send JMS message", e);
                                 throw new RuntimeException(e);
                             }
                         })
@@ -163,6 +169,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
      * @throws Exception if serialization or sending fails.
      */
     private void send(AbstractSession session, AbstractProducer producer, JMSMessage message, RunContext runContext) throws Exception {
+
         AbstractMessage jmsMessage = switch (this.serdeType) {
             case STRING -> {
                 String stringBody = message.getData() != null ? message.getData().toString() : null;

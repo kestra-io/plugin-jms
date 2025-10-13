@@ -4,10 +4,6 @@ name: kestra-jms-sonicmq
 services:
   kestra:
     image: kestra/kestra:v1.0.3
-    #build:
-    #  context: .
-    #dockerfile: Dockerfile
-    #  command: server local
     entrypoint: /bin/sh -c "
       cd /app/ && \
       ./kestra server local"

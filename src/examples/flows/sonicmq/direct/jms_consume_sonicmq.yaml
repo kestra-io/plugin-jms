@@ -1,10 +1,7 @@
-id: jms_consume
+id: jms_consume_sonicmq
 namespace: at.conapi
 
 tasks:
-  - id: hello
-    type: io.kestra.plugin.core.log.Log
-    message: Hello World! 🚀
 
   - id: jms-consume
     type: io.kestra.plugin.jms.JMSConsumer

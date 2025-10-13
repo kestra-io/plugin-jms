@@ -1,4 +1,4 @@
-id: jms_trigger_jndi
+id: jms_trigger_jndi_sonicmq
 namespace: at.conapi
 
 triggers:

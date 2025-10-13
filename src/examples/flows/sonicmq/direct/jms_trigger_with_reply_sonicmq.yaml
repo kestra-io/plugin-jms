@@ -1,4 +1,4 @@
-id: jms_trigger
+id: jms_trigger_with_reply_sonicmq
 namespace: at.conapi
 
 triggers:
