@@ -1,7 +1,6 @@
 package io.kestra.plugin.jms;
 
-import com.rabbitmq.jms.admin.RMQConnectionFactory;
-import com.rabbitmq.jms.admin.RMQDestination;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.junit.jupiter.api.BeforeEach;
 
 import jakarta.jms.Connection;
@@ -10,39 +9,32 @@ import jakarta.jms.Session;
 import jakarta.jms.Topic;
 
 /**
- * Abstract base class for JMS integration tests using RabbitMQ.
+ * Abstract base class for JMS integration tests using ActiveMQ Artemis.
  * <p>
  * This class provides common setup and utility methods for testing the JMS plugin
- * with a local RabbitMQ instance. Tests expect RabbitMQ to be running on localhost:5672
+ * with a local ActiveMQ Artemis instance. Tests expect ActiveMQ to be running on localhost:61616
  * (which can be started using docker-compose up).
  * </p>
  */
 public abstract class AbstractJMSTest {
 
-    protected static final String RABBITMQ_HOST = "localhost";
-    protected static final int RABBITMQ_PORT = 5672;
-    protected static final String RABBITMQ_USER = "guest";
-    protected static final String RABBITMQ_PASSWORD = "guest";
-    protected static final String RABBITMQ_VHOST = "/";
+    protected static final String ACTIVEMQ_URL = "tcp://localhost:61616";
+    protected static final String ACTIVEMQ_USER = "admin";
+    protected static final String ACTIVEMQ_PASSWORD = "admin";
 
     protected static final String TEST_QUEUE_NAME = "kestra_test_queue";
     protected static final String TEST_TOPIC_NAME = "kestra_test_topic";
 
-    protected RMQConnectionFactory connectionFactory;
+    protected ActiveMQConnectionFactory connectionFactory;
 
     /**
      * Sets up the test environment before each test.
-     * Creates a RabbitMQ JMS connection factory and initializes test destinations.
+     * Creates an ActiveMQ Artemis JMS connection factory and initializes test destinations.
      */
     @BeforeEach
     public void setUp() throws Exception {
-        // Create RabbitMQ JMS connection factory
-        connectionFactory = new RMQConnectionFactory();
-        connectionFactory.setHost(RABBITMQ_HOST);
-        connectionFactory.setPort(RABBITMQ_PORT);
-        connectionFactory.setUsername(RABBITMQ_USER);
-        connectionFactory.setPassword(RABBITMQ_PASSWORD);
-        connectionFactory.setVirtualHost(RABBITMQ_VHOST);
+        // Create ActiveMQ Artemis connection factory
+        connectionFactory = new ActiveMQConnectionFactory(ACTIVEMQ_URL, ACTIVEMQ_USER, ACTIVEMQ_PASSWORD);
 
         // Clean up test destinations from previous runs
         cleanupDestinations();
@@ -73,7 +65,7 @@ public abstract class AbstractJMSTest {
     }
 
     /**
-     * Creates a test queue in RabbitMQ.
+     * Creates a test queue in ActiveMQ.
      */
     protected Queue createTestQueue() throws Exception {
         try (Connection connection = connectionFactory.createConnection();
@@ -83,7 +75,7 @@ public abstract class AbstractJMSTest {
     }
 
     /**
-     * Creates a test topic in RabbitMQ.
+     * Creates a test topic in ActiveMQ.
      */
     protected Topic createTestTopic() throws Exception {
         try (Connection connection = connectionFactory.createConnection();

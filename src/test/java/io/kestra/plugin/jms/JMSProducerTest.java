@@ -3,6 +3,7 @@ package io.kestra.plugin.jms;
 import at.conapi.oss.jms.adapter.AbstractDestination;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.flows.State;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.utils.IdUtils;
@@ -41,13 +42,11 @@ class JMSProducerTest extends AbstractJMSTest {
             .id("produce-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -91,13 +90,11 @@ class JMSProducerTest extends AbstractJMSTest {
             .id("produce-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -147,13 +144,11 @@ class JMSProducerTest extends AbstractJMSTest {
             .id("produce-test-json")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -200,13 +195,11 @@ class JMSProducerTest extends AbstractJMSTest {
             .id("produce-test-headers")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )

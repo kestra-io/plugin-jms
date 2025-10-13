@@ -65,9 +65,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSConsumer.Output> {
 
+    // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
+    // Nested configuration objects with @PluginProperty fields don't deserialize correctly
+    // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
+    // config objects entirely, using flat Property<String> fields instead.
+    @PluginProperty
     @NotNull
     @Schema(title = "The destination to consume messages from.")
-    private Property<JMSDestination> destination;
+    private JMSDestination destination;
 
     @PluginProperty(dynamic = true)
     @Schema(
@@ -113,8 +118,8 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
             );
 
             outputFile.flush();
-            var rDestination = runContext.render(this.destination).as(JMSDestination.class).orElseThrow();
-            runContext.metric(Counter.of("messages", total.get(), "destination", rDestination.getDestinationName()));
+            String rDestName = runContext.render(this.destination.getDestinationName());
+            runContext.metric(Counter.of("messages", total.get(), "destination", rDestName));
         }
 
         uri = runContext.storage().putFile(tempFile);
@@ -153,7 +158,6 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
             // Render Property fields with 'r' prefix
             this.rSerdeType = runContext.render(task.serdeType).as(SerdeType.class).orElseThrow();
             this.rMaxWaitTimeout = runContext.render(task.maxWaitTimeout).as(Long.class).orElseThrow();
-            var rDestination = runContext.render(task.destination).as(JMSDestination.class).orElseThrow();
 
             // Inherit the connection logic from the abstract base class
             this.connection = task.createConnection(runContext);
@@ -166,21 +170,21 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
             this.session = (SessionAdapter) this.connection.createSession();
 
             //  Create the Destination object depending on the Destination Type (QUEUE or TOPIC)
-            String rDestName = runContext.render(rDestination.getDestinationName());
-            String rDestType = runContext.render(rDestination.getDestinationType()).as(AbstractDestination.DestinationType.class).orElseThrow() == AbstractDestination.DestinationType.QUEUE ?
+            String destName = runContext.render(task.destination.getDestinationName());
+            String destType = task.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ?
                     SessionAdapter.QUEUE : SessionAdapter.TOPIC;
-            String destinationUrl = String.format("%s://%s", rDestType, rDestName);
+            String destinationUrl = String.format("%s://%s", destType, destName);
             AbstractDestination jmsDestination = this.session.createDestination(destinationUrl);
 
             // allow dynamic message selector use cases
-            String rMsgSelector = runContext.render(task.getMessageSelector());
+            String msgSelector = runContext.render(task.getMessageSelector());
 
-            this.messageConsumer = (ConsumerAdapter) this.session.createConsumer(jmsDestination, rMsgSelector);
+            this.messageConsumer = (ConsumerAdapter) this.session.createConsumer(jmsDestination, msgSelector);
 
             // Start the connection now that all resources are set up
             this.connection.start();
 
-            runContext.logger().info("JMS Consumer started for destination '{}'", rDestName);
+            runContext.logger().info("JMS Consumer started for destination '{}'", destName);
         }
 
         public void run(java.util.function.Consumer<JMSMessage> messageProcessor, java.util.function.Supplier<Boolean> endCondition) throws Exception {

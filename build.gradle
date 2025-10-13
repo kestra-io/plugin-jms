@@ -75,9 +75,13 @@ testlogger {
  * Copy Test Libs for Examples
  **********************************************************************************************************************/
 task copyTestLibs(type: Copy) {
-    description = 'Copies RabbitMQ JMS client libs to build/test-libs for manual testing examples'
+    description = 'Copies RabbitMQ and ActiveMQ JMS client libs to build/test-libs for manual testing examples'
     from configurations.testRuntimeClasspath.filter {
-        it.name.contains('rabbitmq-jms') || it.name.contains('amqp-client')
+        it.name.contains('rabbitmq-jms') ||
+        it.name.contains('amqp-client') ||
+        it.name.startsWith('artemis-') ||  // Get ALL artemis JARs (jakarta-client, commons, core-client, selector)
+        it.name.startsWith('netty-') ||    // Get Netty for Artemis transport
+        it.name.startsWith('commons-')     // Get Apache Commons libraries (beanutils, collections, logging)
     }
     into 'build/test-libs'
 }
@@ -124,8 +128,11 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest"
     testImplementation "org.hamcrest:hamcrest-library"
 
-    // RabbitMQ JMS client for integration tests
+    // RabbitMQ JMS client for integration tests and examples
     testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.4.0"
+
+    // ActiveMQ Artemis Jakarta client for integration tests (Jakarta JMS 3.x)
+    testImplementation "org.apache.activemq:artemis-jakarta-client:2.37.0"
 }
 
 /**********************************************************************************************************************\

@@ -14,16 +14,16 @@ This directory contains example flows and Docker Compose setups for manually tes
 
 This command:
 - Builds the plugin JAR to `build/libs/` (needed for Kestra)
-- Automatically copies the RabbitMQ JMS client to `build/test-libs/` (needed for examples)
+- Automatically copies RabbitMQ and ActiveMQ JMS clients to `build/test-libs/` (needed for examples)
 - Skips running tests
 
 ### 2. Start Docker Compose
 
 The Docker Compose setup mounts both directories into the Kestra container.
 
-## Quick Start with RabbitMQ
+## Quick Start with ActiveMQ Artemis
 
-The fastest way to get started is using RabbitMQ, which requires no external installations.
+The fastest way to get started is using ActiveMQ Artemis, which requires no external installations.
 
 ### 1. Build and Start Services
 
@@ -33,6 +33,43 @@ The fastest way to get started is using RabbitMQ, which requires no external ins
 
 # Start services
 docker-compose -f src/examples/docker/docker-compose.yml up
+```
+
+This starts:
+- **ActiveMQ Artemis** on ports 61616 (JMS) and 8161 (Web Console)
+- **Kestra** on port 8080
+
+### 2. Access UIs
+
+- **Kestra UI**: http://localhost:8080
+- **ActiveMQ Console**: http://localhost:8161 (admin/admin)
+
+### 3. Import Example Flows
+
+In the Kestra UI, import the example flows from `src/examples/flows/activemq/`:
+
+- **jms_produce_activemq.yaml** - Send a message to an ActiveMQ queue
+- **jms_consume_activemq.yaml** - Consume messages from a queue
+- **jms_trigger_activemq.yaml** - Trigger a flow when messages arrive
+
+### 4. Run Examples
+
+1. Execute **jms_produce_activemq** to send a test message
+2. Execute **jms_consume_activemq** to read messages
+3. Enable **jms_trigger_activemq** and send more messages to see it trigger automatically
+
+## Alternative: Quick Start with RabbitMQ
+
+RabbitMQ is also supported as an alternative JMS provider.
+
+### 1. Build and Start Services
+
+```bash
+# Build plugin (if not done yet)
+./gradlew build -x test
+
+# Start services with RabbitMQ
+docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
 ```
 
 This starts:
@@ -52,11 +89,7 @@ In the Kestra UI, import the example flows from `src/examples/flows/rabbitmq/`:
 - **jms_consume.yaml** - Consume messages from a queue
 - **jms_trigger.yaml** - Trigger a flow when messages arrive
 
-### 4. Run Examples
-
-1. Execute **jms_send** to send a test message
-2. Execute **jms_consume** to read messages
-3. Enable **jms_trigger** and send more messages to see it trigger automatically
+**Note:** RabbitMQ has limited JMS support (no message selectors).
 
 ## Using SonicMQ / Aurea Messenger
 
@@ -101,9 +134,9 @@ Update the connection details in the flows to match your SonicMQ broker:
 
 ## Troubleshooting
 
-### RabbitMQ JMS libs not found
+### JMS client libs not found
 
-**Error**: Cannot find RabbitMQ JMS client libraries
+**Error**: Cannot find JMS client libraries (ActiveMQ, RabbitMQ, etc.)
 
 **Solution**: Make sure you ran `./gradlew build -x test` before starting docker-compose. This copies the required dependencies to `build/test-libs/`.
 
@@ -118,22 +151,21 @@ Update the connection details in the flows to match your SonicMQ broker:
 
 ### Running Tests
 
-If you want to run the integration tests after starting the examples:
+The integration tests use ActiveMQ Artemis. Start the test infrastructure:
 
 ```bash
+docker-compose -f ../../docker-compose-ci.yml up -d
 ./gradlew test
 ```
 
-The tests will use the RabbitMQ instance already running via docker-compose.
+### Connection refused to ActiveMQ/RabbitMQ
 
-### Connection refused to RabbitMQ
-
-**Error**: Cannot connect to RabbitMQ
+**Error**: Cannot connect to the message broker
 
 **Solution**:
-1. Wait for RabbitMQ to fully start (check logs: `docker-compose logs rabbitmq`)
-2. Verify RabbitMQ is healthy: `docker-compose ps`
-3. If using `localhost` in flows, change it to `rabbitmq` (the service name)
+1. Wait for the broker to fully start (check logs: `docker-compose logs activemq` or `docker-compose logs rabbitmq`)
+2. Verify the broker is healthy: `docker-compose ps`
+3. If using `localhost` in flows, change it to the service name (`activemq` or `rabbitmq`)
 
 ## Directory Structure
 
@@ -141,10 +173,15 @@ The tests will use the RabbitMQ instance already running via docker-compose.
 src/examples/
 ├── README.md                           # This file
 ├── docker/
-│   ├── docker-compose.yml             # Default: RabbitMQ quick-start
+│   ├── docker-compose.yml             # Default: ActiveMQ Artemis quick-start
+│   ├── docker-compose-rabbitmq.yml    # Alternative: RabbitMQ setup
 │   └── docker-compose-sonicmq.yml     # SonicMQ/Aurea Messenger setup
 └── flows/
-    ├── rabbitmq/                      # RabbitMQ examples (quick-start)
+    ├── activemq/                      # ActiveMQ Artemis examples (default)
+    │   ├── jms_produce_activemq.yaml
+    │   ├── jms_consume_activemq.yaml
+    │   └── jms_trigger_activemq.yaml
+    ├── rabbitmq/                      # RabbitMQ examples (alternative)
     │   ├── jms_send.yaml
     │   ├── jms_consume.yaml
     │   └── jms_trigger.yaml
@@ -162,7 +199,8 @@ src/examples/
 
 ## Notes
 
-- **RabbitMQ** is recommended for quick testing and development
+- **ActiveMQ Artemis** is recommended for quick testing and development (full JMS support)
+- **RabbitMQ** is supported but has limited JMS features (no message selectors)
 - **SonicMQ/Aurea Messenger** examples demonstrate advanced JMS features and JNDI lookup
-- Both setups mount the plugin from `build/libs/` so you can rebuild and restart to test changes
+- All setups mount the plugin from `build/libs/` so you can rebuild and restart to test changes
 - Debug port 7999 is available if you uncomment the JAVA_OPTS environment variable

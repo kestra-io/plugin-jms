@@ -6,7 +6,7 @@ description: |
 
   Prerequisites:
   - Build: ./gradlew build -x test
-  - Start: docker-compose -f src/examples/docker/docker-compose.yml up
+  - Start: docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
 
 tasks:
   - id: send_message

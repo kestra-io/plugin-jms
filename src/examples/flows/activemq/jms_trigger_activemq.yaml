@@ -1,13 +1,13 @@
-id: jms_trigger_rabbitmq
+id: jms_trigger_activemq
 namespace: io.kestra.examples
 
 description: |
-  Trigger a flow when a message arrives on a RabbitMQ queue.
+  Trigger a flow when a message arrives on an ActiveMQ queue.
 
   Prerequisites:
   - Build: ./gradlew build -x test
-  - Start: docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
-  - Send messages using jms_produce_rabbitmq.yaml to trigger this flow
+  - Start: docker-compose -f src/examples/docker/docker-compose.yml up
+  - Send messages using jms_produce_activemq.yaml to trigger this flow
 
 tasks:
   - id: process_message
@@ -25,13 +25,11 @@ triggers:
     type: io.kestra.plugin.jms.JMSRealtimeTrigger
     connectionFactoryConfig:
       type: DIRECT
-      connectionFactoryClass: com.rabbitmq.jms.admin.RMQConnectionFactory
+      connectionFactoryClass: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
       connectionProperties:
-        host: rabbitmq
-        port: "5672"
-        username: guest
-        password: guest
-        virtualHost: /
+        brokerURL: tcp://activemq:61616
+        user: admin
+        password: admin
     destination:
       destinationName: kestra.example.queue
       destinationType: QUEUE

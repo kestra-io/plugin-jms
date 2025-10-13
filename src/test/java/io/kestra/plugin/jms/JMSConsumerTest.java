@@ -4,6 +4,7 @@ import at.conapi.oss.jms.adapter.AbstractDestination;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.flows.State;
+import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
 import io.kestra.core.serializers.FileSerde;
@@ -44,13 +45,11 @@ class JMSConsumerTest extends AbstractJMSTest {
             .id("consume-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -58,9 +57,9 @@ class JMSConsumerTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(1)
-            .maxWaitTimeout(5000L)
-            .serdeType(SerdeType.STRING)
+            .maxMessages(Property.of(1))
+            .maxWaitTimeout(Property.of(5000L))
+            .serdeType(Property.of(SerdeType.STRING))
             .build();
 
         JMSConsumer.Output output = task.run(runContext);
@@ -90,13 +89,11 @@ class JMSConsumerTest extends AbstractJMSTest {
             .id("consume-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -104,9 +101,9 @@ class JMSConsumerTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(3)
-            .maxWaitTimeout(5000L)
-            .serdeType(SerdeType.STRING)
+            .maxMessages(Property.of(3))
+            .maxWaitTimeout(Property.of(5000L))
+            .serdeType(Property.of(SerdeType.STRING))
             .build();
 
         JMSConsumer.Output output = task.run(runContext);
@@ -120,13 +117,12 @@ class JMSConsumerTest extends AbstractJMSTest {
     }
 
     @Test
-    @org.junit.jupiter.api.Disabled("RabbitMQ JMS client does not support message selectors")
     void consumeWithMessageSelector() throws Exception {
         // Create test queue and send messages with different properties
         createTestQueue();
         sendTestMessageWithProperty(TEST_QUEUE_NAME, "High priority message", "priority", 10);
         sendTestMessageWithProperty(TEST_QUEUE_NAME, "Low priority message", "priority", 1);
-        sendTestMessageWithProperty(TEST_QUEUE_NAME, "Another high priority", "priority", 10);
+        sendTestMessageWithProperty(TEST_QUEUE_NAME, "Another high priority message", "priority", 10);
 
         // Configure consumer with message selector
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
@@ -135,13 +131,11 @@ class JMSConsumerTest extends AbstractJMSTest {
             .id("consume-test-selector")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -150,9 +144,9 @@ class JMSConsumerTest extends AbstractJMSTest {
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
             .messageSelector("priority = 10")
-            .maxMessages(10)
-            .maxWaitTimeout(5000L)
-            .serdeType(SerdeType.STRING)
+            .maxMessages(Property.of(10))
+            .maxWaitTimeout(Property.of(5000L))
+            .serdeType(Property.of(SerdeType.STRING))
             .build();
 
         JMSConsumer.Output output = task.run(runContext);
@@ -164,7 +158,7 @@ class JMSConsumerTest extends AbstractJMSTest {
         List<JMSMessage> messages = readMessagesFromStorage(runContext, output.getUri());
         assertThat(messages, hasSize(2));
         messages.forEach(msg -> {
-            assertThat(msg.getData().toString(), containsString("high priority"));
+            assertThat(msg.getData().toString(), containsString("priority message"));
         });
     }
 
@@ -180,13 +174,11 @@ class JMSConsumerTest extends AbstractJMSTest {
             .id("consume-test-timeout")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass("com.rabbitmq.jms.admin.RMQConnectionFactory")
+                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
-                        "host", RABBITMQ_HOST,
-                        "port", String.valueOf(RABBITMQ_PORT),
-                        "username", RABBITMQ_USER,
-                        "password", RABBITMQ_PASSWORD,
-                        "virtualHost", RABBITMQ_VHOST
+                        "brokerURL", ACTIVEMQ_URL,
+                        "user", ACTIVEMQ_USER,
+                        "password", ACTIVEMQ_PASSWORD
                     ))
                     .build()
             )
@@ -194,9 +186,9 @@ class JMSConsumerTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(10)
-            .maxWaitTimeout(2000L) // 2 seconds timeout
-            .serdeType(SerdeType.STRING)
+            .maxMessages(Property.of(10))
+            .maxWaitTimeout(Property.of(2000L)) // 2 seconds timeout
+            .serdeType(Property.of(SerdeType.STRING))
             .build();
 
         JMSConsumer.Output output = task.run(runContext);

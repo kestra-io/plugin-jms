@@ -73,9 +73,14 @@ import java.util.Map;
 })
 public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output> {
 
+    // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
+    // Nested configuration objects with @PluginProperty fields don't deserialize correctly
+    // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
+    // config objects entirely, using flat Property<String> fields instead.
+    @PluginProperty
     @NotNull
     @Schema(title = "The destination to send messages to.")
-    private Property<JMSDestination> destination;
+    private JMSDestination destination;
 
     @Builder.Default
     @Schema(title = "The JMS priority used to send the message (default: 4)")
@@ -119,16 +124,15 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     public Output run(RunContext runContext) throws Exception {
         int messageCount;
         Logger logger = runContext.logger();
-        var rDestination = runContext.render(this.destination).as(JMSDestination.class).orElseThrow();
+        String rDestName = runContext.render(this.destination.getDestinationName());
 
         try (
                 ConnectionAdapter connection = this.createConnection(runContext);
                 SessionAdapter session = (SessionAdapter) connection.createSession()
         ) {
-            String rDestName = runContext.render(rDestination.getDestinationName());
-            String rDestType = runContext.render(rDestination.getDestinationType()).as(AbstractDestination.DestinationType.class).orElseThrow() == AbstractDestination.DestinationType.QUEUE ?
+            String destType = this.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ?
                     SessionAdapter.QUEUE : SessionAdapter.TOPIC;
-            String destinationUrl = String.format("%s://%s", rDestType, rDestName);
+            String destinationUrl = String.format("%s://%s", destType, rDestName);
             AbstractDestination jmsDestination = session.createDestination(destinationUrl);
 
             try (ProducerAdapter producer = (ProducerAdapter) session.createProducer(jmsDestination)) {
@@ -153,7 +157,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
             }
         }
 
-        runContext.metric(Counter.of("records", messageCount, "destination", rDestination.getDestinationName()));
+        runContext.metric(Counter.of("records", messageCount, "destination", rDestName));
         return Output.builder().messagesCount(messageCount).build();
     }
 

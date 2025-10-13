@@ -6,8 +6,8 @@ description: |
 
   Prerequisites:
   - Build: ./gradlew build -x test
-  - Start: docker-compose -f src/examples/docker/docker-compose.yml up
-  - Send messages first using jms_send.yaml
+  - Start: docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
+  - Send messages first using jms_produce_rabbitmq.yaml
 
 tasks:
   - id: consume_messages

@@ -82,9 +82,10 @@ Can be used at task level inside a flow to send a JMS messages to a queue or a t
 - Docker
 
 ### Running tests
-Ensure you have RabbitMQ running. i.e using the example docker compose.
+Ensure you have ActiveMQ Artemis running. You can use the provided docker-compose-ci.yml:
 
-```
+```bash
+docker-compose -f docker-compose-ci.yml up -d
 ./gradlew check --parallel
 ```
 

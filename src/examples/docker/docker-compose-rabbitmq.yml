@@ -1,7 +1,7 @@
 version: "3.8"
-name: kestra-jms-activemq
+name: kestra-jms-rabbitmq
 
-# Default Docker Compose setup with ActiveMQ Artemis (quick-start)
+# Default Docker Compose setup with RabbitMQ (quick-start)
 #
 # USAGE:
 # 1. Build the plugin (skips tests to avoid port conflicts):
@@ -10,21 +10,21 @@ name: kestra-jms-activemq
 # 2. Start the services:
 #    docker-compose -f src/examples/docker/docker-compose.yml up
 #
-# 3. Access:
-#    - Kestra UI: http://localhost:8080
-#    - ActiveMQ Console: http://localhost:8161 (admin/admin)
+# 3. (Optional) Run tests once RabbitMQ is up:
+#    ./gradlew test
 
 services:
-  activemq:
-    image: apache/activemq-artemis:latest
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
     ports:
-      - "61616:61616"  # JMS/OpenWire port
-      - "8161:8161"    # Web console
+      - "5672:5672"      # AMQP port
+      - "15672:15672"    # Management UI (http://localhost:15672, guest/guest)
     environment:
-      ARTEMIS_USER: admin
-      ARTEMIS_PASSWORD: admin
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8161/console/ || exit 1"]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,10 +40,10 @@ services:
     volumes:
       # Mount only the JMS plugin JAR (version-neutral name created by build)
       - ../../../build/libs/plugin-jms-docker.jar:/app/plugins/plugin-jms.jar:ro
-      # Mount ActiveMQ Artemis client libs (automatically copied during build)
+      # Mount RabbitMQ JMS client libs (automatically copied during build)
       - ../../../build/test-libs/:/app/plugins/jms-libs/:ro
     depends_on:
-      activemq:
+      rabbitmq:
         condition: service_healthy
     #environment:
     #   - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7999

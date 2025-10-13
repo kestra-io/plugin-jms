@@ -9,6 +9,7 @@ import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.conditions.ConditionContext;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.property.Property;
@@ -65,12 +66,22 @@ import java.util.Optional;
 )
 public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTriggerInterface, TriggerOutput<JMSMessage> {
 
+    // NOTE: Using @PluginProperty instead of Property<ConnectionFactoryConfig> wrapper.
+    // Polymorphic configuration objects with @JsonTypeInfo/@JsonSubTypes don't deserialize correctly
+    // when wrapped in Property<>. Jackson cannot resolve the type discriminator ('type' field)
+    // during Property deserialization, causing "missing type id property 'type'" errors.
+    @PluginProperty
     @NotNull
-    private Property<ConnectionFactoryConfig> connectionFactoryConfig;
+    private ConnectionFactoryConfig connectionFactoryConfig;
 
+    // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
+    // Nested configuration objects with @PluginProperty fields don't deserialize correctly
+    // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
+    // config objects entirely, using flat Property<String> fields instead.
+    @PluginProperty
     @NotNull
     @Schema(title = "The destination to consume messages from.")
-    private Property<JMSDestination> destination;
+    private JMSDestination destination;
 
     @Schema(
             title = "Message selector to only consume specific messages.",
@@ -92,11 +103,9 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
                 var runContext = conditionContext.getRunContext();
 
                 // Render Property fields
-                ConnectionFactoryConfig rConnectionFactoryConfig = runContext.render(connectionFactoryConfig).as(ConnectionFactoryConfig.class).orElseThrow();
-                JMSDestination rDestination = runContext.render(destination).as(JMSDestination.class).orElseThrow();
                 SerdeType rSerdeType = runContext.render(serdeType).as(SerdeType.class).orElseThrow();
 
-                jmsListener = new JmsListener(runContext, rConnectionFactoryConfig, rDestination, messageSelector, rSerdeType, emitter::next, emitter::error);
+                jmsListener = new JmsListener(runContext, connectionFactoryConfig, destination, messageSelector, rSerdeType, emitter::next, emitter::error);
                 jmsListener.start();
 
                 // onDispose is a crucial hook that Kestra calls when the trigger is disabled or the flow is deleted.
@@ -160,7 +169,7 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
             SessionAdapter session = (SessionAdapter) connection.createSession();
 
             String rDestName = runContext.render(destination.getDestinationName());
-            String rDestType = runContext.render(destination.getDestinationType()).as(AbstractDestination.DestinationType.class).orElseThrow() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
+            String rDestType = destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
             String destinationUrl = String.format("%s://%s", rDestType, rDestName);
             AbstractDestination jmsDestination = session.createDestination(destinationUrl);
 
