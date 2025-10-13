@@ -29,7 +29,7 @@ java {
 }
 
 group = "io.kestra.plugin"
-description = 'Plugin JMS support for Kestra'
+description = 'Plugin JMS for Kestra'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
@@ -207,7 +207,7 @@ jar {
     manifest {
         attributes(
                 "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "JMS Plugins",
+                "X-Kestra-Title": "JMS",
                 "X-Kestra-Group": project.group + ".jms",
                 "X-Kestra-Description": project.description,
                 "X-Kestra-Version": project.version
