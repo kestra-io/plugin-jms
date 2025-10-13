@@ -207,7 +207,7 @@ jar {
     manifest {
         attributes(
                 "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "JMS Plugins",
+                "X-Kestra-Title": "JMS",
                 "X-Kestra-Group": project.group + ".jms",
                 "X-Kestra-Description": project.description,
                 "X-Kestra-Version": project.version
