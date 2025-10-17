@@ -1,0 +1,185 @@
+package io.kestra.plugin.jms;
+
+import at.conapi.oss.jms.adapter.JmsFactory;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
+import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.plugins.PluginClassLoader;
+
+import javax.naming.Context;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.util.*;
+
+public class JMSConnectionFactory {
+
+    public ConnectionFactoryAdapter create(RunContext runContext, ConnectionFactoryConfig config) throws Exception {
+
+        // Step 1: Resolve the provider JAR paths to a list of URLs using the utility method.
+        List<URL> jarUrls = resolveProviderJarUrls(runContext, config.getProviderJarPaths());
+
+        // Step 2: Instantiate your common JmsFactory with the classloader
+        // Pass the current plugin's classloader as parent to ensure proper JMS API delegation
+        // Use FilteredClassLoader only when explicitly enabled (for providers like SonicMQ that bundle JMS API classes)
+        boolean rUseFilteredClassLoader = runContext.render(config.getUseFilteredClassLoader()).as(Boolean.class).orElse(false);
+        JmsFactory jmsFactory = new JmsFactory(
+            jarUrls.toArray(new URL[0]),
+            this.getClass().getClassLoader(),
+            rUseFilteredClassLoader
+        );
+
+        // Step 3: Delegate the creation logic to the JmsFactory
+        if (config instanceof ConnectionFactoryConfig.Direct directConfig) {
+            return createDirectConnectionFactory(runContext, directConfig, jmsFactory);
+        }
+        if (config instanceof ConnectionFactoryConfig.Jndi jndiConfig) {
+            return createJndiConnectionFactory(runContext, jndiConfig, jmsFactory);
+        }
+
+        throw new IllegalArgumentException("Unsupported ConnectionFactoryConfig type.");
+    }
+
+    /**
+     * Utility method to convert a list of string paths into a list of usable URLs.
+     *
+     * @param runContext The Kestra RunContext for variable rendering and storage access.
+     * @param providerJarPaths The list of JAR paths from the configuration.
+     * @return A List of URL objects pointing to the local JAR files.
+     * @throws Exception if rendering or file operations fail.
+     */
+    private List<URL> resolveProviderJarUrls(RunContext runContext, List<String> providerJarPaths) throws Exception {
+        if (providerJarPaths == null || providerJarPaths.isEmpty()) {
+            // if the user has not configured specific jar paths, then we try to load the defaults
+            return getNestedJarUrls("jms-libs");
+        }
+
+        List<URL> jarUrls = new ArrayList<>();
+        for (String path : providerJarPaths) {
+            String rRenderedPath = runContext.render(path);
+            URI uri = new URI(rRenderedPath);
+            jarUrls.add(uri.toURL());
+        }
+        return jarUrls;
+    }
+
+    private ConnectionFactoryAdapter createDirectConnectionFactory(RunContext runContext, ConnectionFactoryConfig.Direct config, JmsFactory jmsFactory) throws Exception {
+        Map<String, String> properties = new HashMap<>();
+        if (config.getConnectionProperties() != null) {
+            for(Map.Entry<String, String> entry : config.getConnectionProperties().entrySet()) {
+                properties.put(entry.getKey(), runContext.render(entry.getValue()));
+            }
+        }
+        String rConnectionFactoryClass = runContext.render(config.getConnectionFactoryClass()).as(String.class).orElseThrow();
+        return (ConnectionFactoryAdapter) jmsFactory.createConnectionFactory(rConnectionFactoryClass, properties);
+    }
+
+    private ConnectionFactoryAdapter createJndiConnectionFactory(RunContext runContext, ConnectionFactoryConfig.Jndi config, JmsFactory jmsFactory) throws Exception {
+        Hashtable<String, String> jndiProperties = new Hashtable<>();
+        String rJndiInitialContextFactory = runContext.render(config.getJndiInitialContextFactory()).as(String.class).orElseThrow();
+        String rJndiProviderUrl = runContext.render(config.getJndiProviderUrl()).as(String.class).orElseThrow();
+        jndiProperties.put(Context.INITIAL_CONTEXT_FACTORY, rJndiInitialContextFactory);
+        jndiProperties.put(Context.PROVIDER_URL, rJndiProviderUrl);
+
+        // credentials for the JNDI lookup can be set via plugin properties, or via the connection properties directly
+        if(config.getJndiPrincipal() != null) {
+            String rJndiPrincipal = runContext.render(config.getJndiPrincipal()).as(String.class).orElse(null);
+            if (rJndiPrincipal != null) {
+                jndiProperties.put(Context.SECURITY_PRINCIPAL, rJndiPrincipal);
+            }
+        }
+        if(config.getJndiCredentials() != null) {
+            String rJndiCredentials = runContext.render(config.getJndiCredentials()).as(String.class).orElse(null);
+            if (rJndiCredentials != null) {
+                jndiProperties.put(Context.SECURITY_CREDENTIALS, rJndiCredentials);
+            }
+        }
+
+        if (config.getConnectionProperties() != null) {
+            for (Map.Entry<String, String> entry : config.getConnectionProperties().entrySet()) {
+                jndiProperties.put(entry.getKey(), runContext.render(entry.getValue()));
+            }
+        }
+
+        String rJndiConnectionFactoryName = runContext.render(config.getJndiConnectionFactoryName()).as(String.class).orElseThrow();
+        return (ConnectionFactoryAdapter) jmsFactory.lookupConnectionFactory(jndiProperties, rJndiConnectionFactoryName);
+    }
+
+    /**
+     * Extracts JAR URLs from a subfolder in the same directory as the plugin JAR.
+     * <p>
+     * The plugin location is obtained from the PluginClassLoader and must be a valid URI.
+     * If the plugin is at /app/plugins/plugin-jms-1.0.jar and subfolderPath is "jms-libs",
+     * this method will look for JARs in /app/plugins/jms-libs/
+     * <p>
+     * When not running in a plugin context (e.g., during tests), returns an empty list,
+     * allowing the JMS provider to be loaded from the current classloader.
+     *
+     * @param subfolderPath The name of the subfolder to look for (e.g., "jms-libs")
+     * @return List of URLs pointing to JAR files within the specified subfolder, or empty list if folder doesn't exist or not in plugin context
+     * @throws IOException if there's an error reading the directory or converting URIs to URLs
+     * @throws IllegalArgumentException if the plugin location is not a valid URI
+     */
+    public List<URL> getNestedJarUrls(String subfolderPath) throws IOException {
+
+        // Get the plugin class loader
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        if (!(classLoader instanceof PluginClassLoader pluginClassLoader)) {
+            // In test mode or when not running as a plugin, return empty list
+            // This will cause JmsFactory to use the current classloader which has the JMS provider on the classpath
+            return new ArrayList<>();
+        }
+
+        String pluginJarLocation = pluginClassLoader.location();
+
+        // Find the main plugin JAR URL - use URI.create().toURL() instead of deprecated URL constructor
+        URL pluginJarUrl;
+        try {
+            pluginJarUrl = URI.create(pluginJarLocation).toURL();
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid plugin location URI: " + pluginJarLocation, e);
+        }
+
+        // Extract JARs from filesystem folder
+        return new ArrayList<>(extractFromFilesystemFolder(pluginJarUrl, subfolderPath));
+    }
+
+    /**
+     * Extracts JAR URLs from a filesystem folder in the same directory as the plugin JAR.
+     * For example, if the plugin is at /app/plugins/plugin-jms-1.0.jar,
+     * and subfolderPath is "jms-libs", it will look in /app/plugins/jms-libs/
+     */
+    private List<URL> extractFromFilesystemFolder(URL pluginUrl, String subfolderPath) throws IOException {
+        List<URL> jarUrls = new ArrayList<>();
+
+        // Get the plugin JAR file
+        File pluginFile = new File(pluginUrl.getFile());
+
+        // Get the parent directory where the plugin JAR is located
+        File pluginDir = pluginFile.getParentFile();
+
+        // Construct the path to the subfolder
+        File libsFolder = new File(pluginDir, subfolderPath);
+
+        // Check if the folder exists and is a directory
+        if (!libsFolder.exists() || !libsFolder.isDirectory()) {
+            // Return empty list if folder doesn't exist
+            return jarUrls;
+        }
+
+        // List all JAR files in the subfolder
+        File[] jarFiles = libsFolder.listFiles((dir, name) -> name.endsWith(".jar"));
+
+        if (jarFiles != null) {
+            for (File jarFile : jarFiles) {
+                // Convert each JAR file to a URL
+                jarUrls.add(jarFile.toURI().toURL());
+            }
+        }
+
+        return jarUrls;
+    }
+
+}
+

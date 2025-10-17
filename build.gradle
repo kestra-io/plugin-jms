@@ -29,7 +29,7 @@ java {
 }
 
 group = "io.kestra.plugin"
-description = 'Plugin template for Kestra'
+description = 'Plugin JMS for Kestra'
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
@@ -49,6 +49,9 @@ dependencies {
     annotationProcessor group: "io.kestra", name: "processor", version: kestraVersion
     compileOnly group: "io.kestra", name: "core", version: kestraVersion
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
+
+    // JMS adapter
+    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.1"
 }
 
 
@@ -67,6 +70,34 @@ testlogger {
     showPassedStandardStreams = false
     showSkippedStandardStreams = true
 }
+
+/**********************************************************************************************************************\
+ * Copy Test Libs for Examples
+ **********************************************************************************************************************/
+task copyTestLibs(type: Copy) {
+    description = 'Copies RabbitMQ and ActiveMQ JMS client libs to build/test-libs for manual testing examples'
+    from configurations.testRuntimeClasspath.filter {
+        it.name.contains('rabbitmq-jms') ||
+        it.name.contains('amqp-client') ||
+        it.name.startsWith('artemis-') ||  // Get ALL artemis JARs (jakarta-client, commons, core-client, selector)
+        it.name.startsWith('netty-') ||    // Get Netty for Artemis transport
+        it.name.startsWith('commons-')     // Get Apache Commons libraries (beanutils, collections, logging)
+    }
+    into 'build/test-libs'
+}
+
+// Ensure copyTestLibs runs as part of the build process (even when tests are skipped)
+assemble.dependsOn copyTestLibs
+
+task copyPluginForDocker(type: Copy) {
+    description = 'Creates version-neutral copy of plugin JAR for Docker mounting'
+    from shadowJar
+    into 'build/libs'
+    rename { 'plugin-jms-docker.jar' }
+}
+
+// Ensure copyPluginForDocker runs after assembling (shadowJar is part of assemble)
+assemble.finalizedBy copyPluginForDocker
 
 dependencies {
     // Platform
@@ -96,6 +127,12 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-engine"
     testImplementation "org.hamcrest:hamcrest"
     testImplementation "org.hamcrest:hamcrest-library"
+
+    // RabbitMQ JMS client for integration tests and examples
+    testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.4.0"
+
+    // ActiveMQ Artemis Jakarta client for integration tests (Jakarta JMS 3.x)
+    testImplementation "org.apache.activemq:artemis-jakarta-client:2.37.0"
 }
 
 /**********************************************************************************************************************\
@@ -151,9 +188,14 @@ mavenPublishing {
         }
         developers {
             developer {
-                id = 'tchiotludo'
-                name = 'Dehon'
-                email = 'ldehon@kestra.io'
+                id = 'conapi-frank'
+                name = 'Frank Beusenberg'
+                email = 'frank@conapi.at'
+            }
+            developer {
+                id = 'conapi-stefan'
+                name = 'Stefan Fritz'
+                email = 'stefan@conapi.at'
             }
         }
         scm {
@@ -172,8 +214,8 @@ jar {
     manifest {
         attributes(
                 "X-Kestra-Name": project.name,
-                "X-Kestra-Title": "Template",
-                "X-Kestra-Group": project.group + ".templates",
+                "X-Kestra-Title": "JMS",
+                "X-Kestra-Group": project.group + ".jms",
                 "X-Kestra-Description": project.description,
                 "X-Kestra-Version": project.version
         )

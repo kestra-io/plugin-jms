@@ -1,0 +1,33 @@
+id: jms_consume_rabbitmq
+namespace: io.kestra.examples
+
+description: |
+  Consume messages from a RabbitMQ queue using JMS.
+
+  Prerequisites:
+  - Build: ./gradlew build -x test
+  - Start: docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
+  - Send messages first using jms_produce_rabbitmq.yaml
+
+tasks:
+  - id: consume_messages
+    type: io.kestra.plugin.jms.JMSConsumer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: com.rabbitmq.jms.admin.RMQConnectionFactory
+      connectionProperties:
+        host: rabbitmq
+        port: "5672"
+        username: guest
+        password: guest
+        virtualHost: /
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    maxMessages: 10
+    maxWaitTimeout: 5000
+    serdeType: STRING
+
+  - id: log_result
+    type: io.kestra.plugin.core.log.Log
+    message: "Consumed {{ outputs.consume_messages.count }} message(s) from RabbitMQ"
