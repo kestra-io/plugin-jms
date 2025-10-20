@@ -33,9 +33,7 @@ public abstract class ConnectionFactoryConfig {
                     "If not specified, all jar files in the 'jms-libs' sub folder of your plugins location will be added to the classpath."
     )
     @PluginProperty(dynamic = true)
-    //@NotNull
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // Allow single string in YAML
-    @JsonAlias("providerJarPath") // For backward compatibility with the old property name
     private List<String> providerJarPaths;
 
     @Schema(
