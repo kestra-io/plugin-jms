@@ -1,0 +1,25 @@
+id: jms_trigger_jndi_sonicmq
+namespace: at.conapi
+
+triggers:
+  - id: jms-trigger
+    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    connectionFactoryConfig:
+      type: JNDI
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
+      jndiConnectionFactoryName: myCF
+      jndiInitialContextFactory: com.sonicsw.jndi.mfcontext.MFContextFactory
+      jndiProviderUrl: tcp://host.docker.internal:2506
+      connectionProperties:
+        com.sonicsw.jndi.mfcontext.domain: Domain1
+        java.naming.security.principal: Administrator
+        java.naming.security.credentials: Administrator
+    destination:
+      destinationName: SampleQ2
+      destinationType: QUEUE
+
+tasks:
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ trigger.data }}'

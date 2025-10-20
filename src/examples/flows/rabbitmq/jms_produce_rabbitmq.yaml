@@ -1,0 +1,30 @@
+id: jms_produce_rabbitmq
+namespace: io.kestra.examples
+
+description: |
+  Send a message to a RabbitMQ queue using JMS.
+
+  Prerequisites:
+  - Build: ./gradlew build -x test
+  - Start: docker-compose -f src/examples/docker/docker-compose-rabbitmq.yml up
+
+tasks:
+  - id: send_message
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: com.rabbitmq.jms.admin.RMQConnectionFactory
+      connectionProperties:
+        host: rabbitmq
+        port: "5672"
+        username: guest
+        password: guest
+        virtualHost: /
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    from: "Hello from Kestra JMS Plugin!"
+
+  - id: log_success
+    type: io.kestra.plugin.core.log.Log
+    message: "Message sent successfully to RabbitMQ queue"

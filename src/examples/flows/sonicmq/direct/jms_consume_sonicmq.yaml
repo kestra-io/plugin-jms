@@ -1,0 +1,26 @@
+id: jms_consume_sonicmq
+namespace: at.conapi
+
+tasks:
+
+  - id: jms-consume
+    type: io.kestra.plugin.jms.JMSConsumer
+    connectionFactoryConfig:
+      type: DIRECT
+      # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
+      useFilteredClassLoader: true
+      connectionFactoryClass: progress.message.jclient.ConnectionFactory
+      username: Administrator
+      password: Administrator
+      connectionProperties:
+        connectionURLs: tcp://host.docker.internal:2506
+    maxMessages: 1
+    maxWaitTimeout: 10000
+    #messageSelector: test = 1 #only consume messages with a property called test and an integer value of 1
+    destination:
+      destinationName: SampleQ1
+      destinationType: QUEUE
+
+  - id: logoutputs
+    type: io.kestra.plugin.core.log.Log
+    message: '{{ outputs["jms-consume"] }} '

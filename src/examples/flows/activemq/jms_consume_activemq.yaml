@@ -1,0 +1,31 @@
+id: jms_consume_activemq
+namespace: io.kestra.examples
+
+description: |
+  Consume messages from an ActiveMQ queue using JMS.
+
+  Prerequisites:
+  - Build: ./gradlew build -x test
+  - Start: docker-compose -f src/examples/docker/docker-compose.yml up
+  - Send messages first using jms_produce_activemq.yaml
+
+tasks:
+  - id: consume_messages
+    type: io.kestra.plugin.jms.JMSConsumer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
+      connectionProperties:
+        brokerURL: tcp://activemq:61616
+        user: admin
+        password: admin
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    maxMessages: 10
+    maxWaitTimeout: 5000
+    serdeType: STRING
+
+  - id: log_result
+    type: io.kestra.plugin.core.log.Log
+    message: "Consumed {{ outputs.consume_messages.count }} message(s) from ActiveMQ"

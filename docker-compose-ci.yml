@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: server local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./build/libs/:/app/plugins/
+    depends_on:
+      activemq:
+        condition: service_healthy
+
+  activemq:
+    image: apache/activemq-artemis:latest
+    ports:
+      - "61616:61616"  # JMS/OpenWire port
+      - "8161:8161"    # Web console (http://localhost:8161, admin/admin)
+    environment:
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: admin
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161/console/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
