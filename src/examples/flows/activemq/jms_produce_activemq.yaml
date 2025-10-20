@@ -2,14 +2,15 @@ id: jms_produce_activemq
 namespace: io.kestra.examples
 
 description: |
-  Send a message to an ActiveMQ queue using JMS.
+  Send messages to an ActiveMQ queue using JMS with different input formats.
 
   Prerequisites:
   - Build: ./gradlew build -x test
   - Start: docker-compose -f src/examples/docker/docker-compose.yml up
 
 tasks:
-  - id: send_message
+  # Example 1: Plain string message (simple use case)
+  - id: send_plain_text
     type: io.kestra.plugin.jms.JMSProducer
     connectionFactoryConfig:
       type: DIRECT
@@ -21,8 +22,27 @@ tasks:
     destination:
       destinationName: kestra.example.queue
       destinationType: QUEUE
-    from: "Hello from Kestra JMS Plugin with ActiveMQ!"
+    from: "Hello from Kestra JMS Plugin!"
+
+  # Example 2: Structured message with custom headers (advanced use case)
+  - id: send_with_headers
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
+      connectionProperties:
+        brokerURL: tcp://activemq:61616
+        user: admin
+        password: admin
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    from:
+      data: "Message with custom headers"
+      headers:
+        customProperty: "value1"
+        priority: 5
 
   - id: log_success
     type: io.kestra.plugin.core.log.Log
-    message: "Message sent successfully to ActiveMQ queue"
+    message: "Messages sent successfully to ActiveMQ queue"

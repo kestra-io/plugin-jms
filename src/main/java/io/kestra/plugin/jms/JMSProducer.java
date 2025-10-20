@@ -7,9 +7,9 @@ import at.conapi.oss.jms.adapter.AbstractSession;
 import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
 import at.conapi.oss.jms.adapter.impl.ProducerAdapter;
 import at.conapi.oss.jms.adapter.impl.SessionAdapter;
+import io.kestra.core.models.property.Data;
 import io.kestra.core.models.property.Property;
 import io.kestra.plugin.jms.serde.SerdeType;
-import com.fasterxml.jackson.core.type.TypeReference;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
@@ -17,7 +17,6 @@ import io.kestra.core.models.executions.metrics.Counter;
 import io.kestra.core.models.tasks.RunnableTask;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.serializers.JacksonMapper;
-import io.kestra.core.utils.Rethrow;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -25,10 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -71,7 +66,7 @@ import java.util.Map;
                         """
         )
 })
-public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output> {
+public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output>, Data.From {
 
     // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
@@ -94,13 +89,7 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     @Schema(title = "The time to live of the sent message in milliseconds (default: 0 = does not expire)")
     private Property<Long> timeToLive = Property.ofValue(0L);
 
-    @PluginProperty(dynamic = true)
     @NotNull
-    @Schema(
-            title = "The source of the data to be published.",
-            description = "Can be a Kestra internal storage URI, a list of message objects, or a single message object.",
-            anyOf = {String.class, List.class, Map.class}
-    )
     private Object from;
 
     @Builder.Default
@@ -201,51 +190,29 @@ public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProd
     }
 
     /**
-     * Processes the 'from' property, which can be a Kestra URI, a List, or a Map,
-     * and transforms it into a reactive stream (Flux) of JMSMessage objects.
+     * Processes the 'from' property, handling both plain strings and structured data.
+     * Plain strings are wrapped in JMSMessage objects, while structured data (Maps, Lists,
+     * JSON strings, URIs) is processed through Data.From.
      *
      * @param runContext The Kestra run context for rendering and storage access.
      * @return A Flux of JMSMessage objects ready to be published.
      * @throws Exception if the 'from' data is invalid or cannot be processed.
      */
     private Flux<JMSMessage> processFrom(RunContext runContext) throws Exception {
-        if (this.from instanceof String fromString) {
-            String rFromString = runContext.render(fromString);
-            URI uri;
-            try {
-                uri = new URI(rFromString);
-            } catch (Exception e) {
-                // Not a valid URI, treat as a raw string message
-                return Flux.just(JMSMessage.builder().data(rFromString).build());
+        // Handle plain strings separately (not valid JSON)
+        if (from instanceof String str) {
+            String rendered = runContext.render(str);
+            // Check if it's structured data (JSON/URI) vs plain text
+            if (!rendered.startsWith("{") && !rendered.startsWith("[") &&
+                !rendered.contains("://")) {
+                // Plain string - wrap in JMSMessage
+                return Flux.just(JMSMessage.builder().data(rendered).build());
             }
-
-            if (uri.getScheme() != null && uri.getScheme().equals("kestra")) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(uri)))) {
-                    return Flux.fromStream(reader.lines())
-                            .map(Rethrow.throwFunction(line -> JacksonMapper.ofIon().readValue(line, JMSMessage.class)));
-                }
-            } else { // It's a single string message (that might look like a URI but isn't a kestra one)
-                return Flux.just(JMSMessage.builder().data(rFromString).build());
-            }
-        } else if (this.from instanceof List fromList) {
-            try {
-                @SuppressWarnings("unchecked")
-                List<Object> rFromList = runContext.render(fromList);
-                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(rFromList, new TypeReference<>() {});
-                return Flux.fromIterable(messageList);
-            } catch (ClassCastException e) {
-                // If rendering fails (e.g., list contains complex objects without template variables), use the original list
-                List<JMSMessage> messageList = JacksonMapper.ofIon().convertValue(fromList, new TypeReference<>() {});
-                return Flux.fromIterable(messageList);
-            }
-        } else if (this.from instanceof Map fromMap) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> rFromMap = runContext.render((Map<String, Object>) fromMap);
-            JMSMessage message = JacksonMapper.ofIon().convertValue(rFromMap, JMSMessage.class);
-            return Flux.just(message);
         }
 
-        throw new IllegalArgumentException("Invalid 'from' property type: " + this.from.getClass().getName());
+        // Use Data.From for structured data (Maps, Lists, JSON, URIs)
+        return Data.from(from)
+            .readAs(runContext, JMSMessage.class, map -> JacksonMapper.ofIon().convertValue(map, JMSMessage.class));
     }
 
     @Builder
