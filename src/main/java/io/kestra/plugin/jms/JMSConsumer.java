@@ -41,25 +41,25 @@ import java.util.concurrent.atomic.AtomicInteger;
         @Example(
                 full = true,
                 title = "Consume 100 Messages from a JMS Queue",
-                code = {
-                        "id: jms_consume",
-                        "namespace: company.team",
-                        "",
-                        "tasks:",
-                        "  - id: consume_from_queue",
-                        "    type: io.kestra.plugin.jms.JMSConsumer",
-                        "    connectionFactoryConfig:",
-                        "      type: DIRECT",
-                        "      providerJarPaths: kestra:///jms/activemq-client.jar",
-                        "      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory",
-                        "      username: admin",
-                        "      password: \"{{ secret('AMQ_PASSWORD') }}\"",
-                        "    destination:",
-                        "      name: my-queue",
-                        "      destinationType: QUEUE",
-                        "    maxMessages: 100",
-                        "    maxWaitTimeout: 5000",
-                }
+                code = """
+                        id: jms_consume
+                        namespace: company.team
+
+                        tasks:
+                          - id: consume_from_queue
+                            type: io.kestra.plugin.jms.JMSConsumer
+                            connectionFactoryConfig:
+                              type: DIRECT
+                              providerJarPaths: kestra:///jms/activemq-client.jar
+                              connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+                              username: admin
+                              password: "{{ secret('AMQ_PASSWORD') }}"
+                            destination:
+                              name: my-queue
+                              destinationType: QUEUE
+                            maxMessages: 100
+                            maxWaitTimeout: 5000
+                        """
         )
 })
 

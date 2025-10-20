@@ -45,30 +45,30 @@ import java.util.Map;
         @Example(
                 full = true,
                 title = "Produce a List of Messages to a JMS Queue",
-                code = {
-                        "id: jms_produce",
-                        "namespace: company.team",
-                        "",
-                        "tasks:",
-                        "  - id: produce_to_queue",
-                        "    type: io.kestra.plugin.jms.JMSProducer",
-                        "    connectionFactoryConfig:",
-                        "      type: DIRECT",
-                        "      providerJarPaths: kestra:///jms/activemq-client.jar",
-                        "      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory",
-                        "      username: admin",
-                        "      password: \"{{ secret('AMQ_PASSWORD') }}\"",
-                        "    destination:",
-                        "      name: my-queue",
-                        "      destinationType: QUEUE",
-                        "    from:",
-                        "      - data: \"Hello World\"",
-                        "        headers:",
-                        "          property1: \"value1\"",
-                        "      - data:",
-                        "          message: \"Another message\"",
-                        "          id: 123"
-                }
+                code = """
+                        id: jms_produce
+                        namespace: company.team
+
+                        tasks:
+                          - id: produce_to_queue
+                            type: io.kestra.plugin.jms.JMSProducer
+                            connectionFactoryConfig:
+                              type: DIRECT
+                              providerJarPaths: kestra:///jms/activemq-client.jar
+                              connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+                              username: admin
+                              password: "{{ secret('AMQ_PASSWORD') }}"
+                            destination:
+                              name: my-queue
+                              destinationType: QUEUE
+                            from:
+                              - data: "Hello World"
+                                headers:
+                                  property1: "value1"
+                              - data:
+                                  message: "Another message"
+                                  id: 123
+                        """
         )
 })
 public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output> {
