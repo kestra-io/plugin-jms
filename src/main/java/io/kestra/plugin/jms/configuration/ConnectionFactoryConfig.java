@@ -68,6 +68,11 @@ public abstract class ConnectionFactoryConfig {
     )
     private Property<Boolean> useFilteredClassLoader = Property.ofValue(false);
 
+    // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.
+    // See https://stackoverflow.com/questions/51947791/javadoc-cannot-find-symbol-error-when-using-lomboks-builder-annotation
+    public static abstract class ConnectionFactoryConfigBuilder<C extends ConnectionFactoryConfig, B extends ConnectionFactoryConfigBuilder<C, B>> {
+    }
+
     // --- Nested subclasses ---
 
     @Getter
@@ -81,6 +86,10 @@ public abstract class ConnectionFactoryConfig {
         )
         @NotNull
         private Property<String> connectionFactoryClass;
+
+        // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.
+        public static abstract class DirectBuilder<C extends Direct, B extends DirectBuilder<C, B>> extends ConnectionFactoryConfigBuilder<C, B> {
+        }
 
         @JsonPOJOBuilder(withPrefix = "")
         public static class DirectBuilderImpl extends Direct.DirectBuilder<Direct, DirectBuilderImpl> {}
@@ -111,6 +120,10 @@ public abstract class ConnectionFactoryConfig {
         @Schema(title = "JNDI Connection Factory Name", example = "jms/RemoteConnectionFactory")
         @NotNull
         private Property<String> jndiConnectionFactoryName;
+
+        // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.
+        public static abstract class JndiBuilder<C extends Jndi, B extends JndiBuilder<C, B>> extends ConnectionFactoryConfigBuilder<C, B> {
+        }
 
         @JsonPOJOBuilder(withPrefix = "")
         public static class JndiBuilderImpl extends Jndi.JndiBuilder<Jndi, JndiBuilderImpl> {}
