@@ -155,7 +155,6 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
         private final long rMaxWaitTimeout;
 
         public ConsumeRunner(RunContext runContext, JMSConsumer task) throws Exception {
-            // Render Property fields with 'r' prefix
             this.rSerdeType = runContext.render(task.serdeType).as(SerdeType.class).orElseThrow();
             this.rMaxWaitTimeout = runContext.render(task.maxWaitTimeout).as(Long.class).orElseThrow();
 
