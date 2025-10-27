@@ -129,7 +129,7 @@ dependencies {
     testImplementation "org.hamcrest:hamcrest-library"
 
     // RabbitMQ JMS client for integration tests and examples
-    testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.4.0"
+    testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.5.0"
 
     // ActiveMQ Artemis Jakarta client for integration tests (Jakarta JMS 3.x)
     testImplementation "org.apache.activemq:artemis-jakarta-client:2.43.0"
