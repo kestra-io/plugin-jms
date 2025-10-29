@@ -1,0 +1,52 @@
+version: "3.8"
+name: kestra-jms-activemq-classic
+
+# Docker Compose setup with ActiveMQ Classic (5.x)
+#
+# USAGE:
+# 1. Build the plugin (skips tests to avoid port conflicts):
+#    ./gradlew build -x test
+#
+# 2. Start the services:
+#    docker-compose -f src/examples/docker/docker-compose-activemq-classic.yml up
+#
+# 3. Access:
+#    - Kestra UI: http://localhost:8080
+#    - ActiveMQ Console: http://localhost:8161/admin (admin/admin)
+
+services:
+  activemq-classic:
+    image: apache/activemq-classic:latest
+    ports:
+      - "61616:61616"  # JMS/OpenWire port
+      - "8161:8161"    # Web console
+      - "1099:1099"   # jmx
+      - "1098:1098"   # rmi
+    environment:
+      ACTIVEMQ_USERNAME: admin
+      ACTIVEMQ_PASSWORD: admin
+      ACTIVEMQ_OPTS: -Djava.rmi.server.hostname=host.docker.internal -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dactivemq.remoteurl=tcp://host.docker.internal:61616 -Dactivemq.transportConnectors.server.uri.tcp=tcp://0.0.0.0:61616
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8161/admin/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kestra:
+    image: kestra/kestra:v1.0.3
+    entrypoint: /bin/sh -c "
+      cd /app/ && \
+      ./kestra server local"
+    ports:
+      - "8080:8080"      # Kestra UI
+      - "7999:7999"      # Debug port (optional)
+    volumes:
+      # Mount only the JMS plugin JAR (version-neutral name created by build)
+      - ../../../build/libs/plugin-jms-docker.jar:/app/plugins/plugin-jms.jar:ro
+      # Mount ActiveMQ Classic client libs (automatically copied during build)
+      - ../../../build/test-libs/:/app/plugins/jms-libs/:ro
+    depends_on:
+      activemq-classic:
+        condition: service_healthy
+    #environment:
+    #   - JAVA_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7999

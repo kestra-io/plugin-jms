@@ -1,0 +1,50 @@
+id: jms_produce_activemq_classic
+namespace: io.kestra.examples
+
+description: |
+  Send messages to an ActiveMQ Classic queue using JMS with different input formats.
+
+  ActiveMQ Classic is the legacy 5.x version of ActiveMQ, different from ActiveMQ Artemis.
+
+  Prerequisites:
+  - Build: ./gradlew build -x test
+  - Start: docker-compose -f src/examples/docker/docker-compose-activemq-classic.yml up
+
+tasks:
+  # Example 1: Plain string message (simple use case)
+  - id: send_plain_text
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+      connectionProperties:
+        brokerURL: tcp://activemq-classic:61616
+        userName: admin
+        password: admin
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    from: "Hello from Kestra JMS Plugin!"
+
+  # Example 2: Structured message with custom headers (advanced use case)
+  - id: send_with_headers
+    type: io.kestra.plugin.jms.JMSProducer
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+      connectionProperties:
+        brokerURL: tcp://activemq-classic:61616
+        userName: admin
+        password: admin
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    from:
+      data: "Message with custom headers"
+      headers:
+        customProperty: "value1"
+        priority: 5
+
+  - id: log_success
+    type: io.kestra.plugin.core.log.Log
+    message: "Messages sent successfully to ActiveMQ Classic queue"

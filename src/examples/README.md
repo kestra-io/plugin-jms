@@ -58,6 +58,45 @@ In the Kestra UI, import the example flows from `src/examples/flows/activemq/`:
 2. Execute **jms_consume_activemq** to read messages
 3. Enable **jms_trigger_activemq** and send more messages to see it trigger automatically
 
+## Alternative: Quick Start with ActiveMQ Classic
+
+ActiveMQ Classic (5.x series) is the legacy version of ActiveMQ, different from the modern ActiveMQ Artemis. Use this if you're working with existing ActiveMQ Classic infrastructure.
+
+### 1. Build and Start Services
+
+```bash
+# Build plugin (if not done yet)
+./gradlew build -x test
+
+# Start services with ActiveMQ Classic
+docker-compose -f src/examples/docker/docker-compose-activemq-classic.yml up
+```
+
+This starts:
+- **ActiveMQ Classic** on ports 61616 (JMS) and 8161 (Web Console)
+- **Kestra** on port 8080
+
+### 2. Access UIs
+
+- **Kestra UI**: http://localhost:8080
+- **ActiveMQ Console**: http://localhost:8161/admin (admin/admin)
+
+### 3. Import Example Flows
+
+In the Kestra UI, import the example flows from `src/examples/flows/activemq-classic/`:
+
+- **jms_produce_activemq_classic.yaml** - Send a message to an ActiveMQ Classic queue
+- **jms_consume_activemq_classic.yaml** - Consume messages from a queue
+- **jms_trigger_activemq_classic.yaml** - Trigger a flow when messages arrive
+
+### 4. Run Examples
+
+1. Execute **jms_produce_activemq_classic** to send a test message
+2. Execute **jms_consume_activemq_classic** to read messages
+3. Enable **jms_trigger_activemq_classic** and send more messages to see it trigger automatically
+
+**Note:** The key difference from Artemis is the connection factory class: `org.apache.activemq.ActiveMQConnectionFactory` (Classic) vs `org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory` (Artemis) and the slightly different connection property names userName vs user.
+
 ## Alternative: Quick Start with RabbitMQ
 
 RabbitMQ is also supported as an alternative JMS provider.
@@ -171,27 +210,32 @@ docker-compose -f ../../docker-compose-ci.yml up -d
 
 ```
 src/examples/
-├── README.md                           # This file
+├── README.md                                # This file
 ├── docker/
-│   ├── docker-compose.yml             # Default: ActiveMQ Artemis quick-start
-│   ├── docker-compose-rabbitmq.yml    # Alternative: RabbitMQ setup
-│   └── docker-compose-sonicmq.yml     # SonicMQ/Aurea Messenger setup
+│   ├── docker-compose.yml                  # Default: ActiveMQ Artemis quick-start
+│   ├── docker-compose-activemq-classic.yml # Alternative: ActiveMQ Classic (5.x)
+│   ├── docker-compose-rabbitmq.yml         # Alternative: RabbitMQ setup
+│   └── docker-compose-sonicmq.yml          # SonicMQ/Aurea Messenger setup
 └── flows/
-    ├── activemq/                      # ActiveMQ Artemis examples (default)
+    ├── activemq/                           # ActiveMQ Artemis examples (default)
     │   ├── jms_produce_activemq.yaml
     │   ├── jms_consume_activemq.yaml
     │   └── jms_trigger_activemq.yaml
-    ├── rabbitmq/                      # RabbitMQ examples (alternative)
+    ├── activemq-classic/                   # ActiveMQ Classic (5.x) examples
+    │   ├── jms_produce_activemq_classic.yaml
+    │   ├── jms_consume_activemq_classic.yaml
+    │   └── jms_trigger_activemq_classic.yaml
+    ├── rabbitmq/                           # RabbitMQ examples (alternative)
     │   ├── jms_send.yaml
     │   ├── jms_consume.yaml
     │   └── jms_trigger.yaml
-    └── sonicmq/                       # SonicMQ/Aurea Messenger examples
-        ├── direct/                    # Direct connection examples
+    └── sonicmq/                            # SonicMQ/Aurea Messenger examples
+        ├── direct/                         # Direct connection examples
         │   ├── jms_send.yaml
         │   ├── jms_consume.yaml
         │   ├── jms_trigger.yaml
         │   └── jms_trigger_with_reply.yaml
-        └── jndi/                      # JNDI connection examples
+        └── jndi/                           # JNDI connection examples
             ├── jms_send_jndi.yaml
             ├── jms_consume_jndi.yaml
             └── jms_trigger_jndi.yaml
@@ -199,7 +243,8 @@ src/examples/
 
 ## Notes
 
-- **ActiveMQ Artemis** is recommended for quick testing and development (full JMS support)
+- **ActiveMQ Artemis** is recommended for quick testing and development (full JMS support, modern architecture)
+- **ActiveMQ Classic** (5.x series) is the legacy version, use if working with existing Classic infrastructure
 - **RabbitMQ** is supported but has limited JMS features (no message selectors)
 - **SonicMQ/Aurea Messenger** examples demonstrate advanced JMS features and JNDI lookup
 - All setups mount the plugin from `build/libs/` so you can rebuild and restart to test changes

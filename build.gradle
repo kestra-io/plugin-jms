@@ -75,12 +75,15 @@ testlogger {
  * Copy Test Libs for Examples
  **********************************************************************************************************************/
 task copyTestLibs(type: Copy) {
-    description = 'Copies RabbitMQ and ActiveMQ JMS client libs to build/test-libs for manual testing examples'
+    description = 'Copies RabbitMQ, ActiveMQ Artemis, and ActiveMQ Classic JMS client libs to build/test-libs for manual testing examples'
     from configurations.testRuntimeClasspath.filter {
         it.name.contains('rabbitmq-jms') ||
         it.name.contains('amqp-client') ||
         it.name.startsWith('artemis-') ||  // Get ALL artemis JARs (jakarta-client, commons, core-client, selector)
         it.name.startsWith('netty-') ||    // Get Netty for Artemis transport
+        it.name.startsWith('activemq-') || // Get ActiveMQ Classic client JARs
+        it.name.startsWith('hawtbuf-') ||  // ActiveMQ Classic dependency
+        it.name.startsWith('geronimo-') || // ActiveMQ Classic JMS spec dependency
         it.name.startsWith('commons-')     // Get Apache Commons libraries (beanutils, collections, logging)
     }
     into 'build/test-libs'
@@ -133,6 +136,9 @@ dependencies {
 
     // ActiveMQ Artemis Jakarta client for integration tests (Jakarta JMS 3.x)
     testImplementation "org.apache.activemq:artemis-jakarta-client:2.43.0"
+
+    // ActiveMQ Classic client for integration tests and examples (classic ActiveMQ 5.x)
+    testImplementation "org.apache.activemq:activemq-client:5.19.1"
 }
 
 /**********************************************************************************************************************\

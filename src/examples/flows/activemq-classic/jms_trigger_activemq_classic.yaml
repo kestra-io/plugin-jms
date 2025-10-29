@@ -1,0 +1,38 @@
+id: jms_trigger_activemq_classic
+namespace: io.kestra.examples
+
+description: |
+  Trigger a flow when a message arrives on an ActiveMQ Classic queue.
+
+  ActiveMQ Classic is the legacy 5.x version of ActiveMQ, different from ActiveMQ Artemis.
+
+  Prerequisites:
+  - Build: ./gradlew build -x test
+  - Start: docker-compose -f src/examples/docker/docker-compose-activemq-classic.yml up
+  - Send messages using jms_produce_activemq_classic.yaml to trigger this flow
+
+tasks:
+  - id: process_message
+    type: io.kestra.plugin.core.log.Log
+    message: "Received message: {{ trigger.data }}"
+
+  - id: log_metadata
+    type: io.kestra.plugin.core.log.Log
+    message: |
+      Message ID: {{ trigger.messageId }}
+      Timestamp: {{ trigger.timestamp }}
+
+triggers:
+  - id: watch_queue
+    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    connectionFactoryConfig:
+      type: DIRECT
+      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+      connectionProperties:
+        brokerURL: tcp://activemq-classic:61616
+        userName: admin
+        password: admin
+    destination:
+      destinationName: kestra.example.queue
+      destinationType: QUEUE
+    serdeType: STRING
