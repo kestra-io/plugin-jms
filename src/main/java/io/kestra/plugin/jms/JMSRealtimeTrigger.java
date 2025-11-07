@@ -166,7 +166,8 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
 
             this.connection.setExceptionListener(errorConsumer::accept);
 
-            SessionAdapter session = (SessionAdapter) connection.createSession();
+            // Use CLIENT_ACKNOWLEDGE for at-least-once delivery semantics
+            SessionAdapter session = (SessionAdapter) connection.createSession(false, SessionAdapter.CLIENT_ACKNOWLEDGE);
 
             String rDestName = runContext.render(destination.getDestinationName());
             String rDestType = destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
@@ -179,8 +180,13 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
                 try {
                     JMSMessage kestraMessage = JMSMessage.of(message, serdeType);
                     messageConsumer.accept(kestraMessage);
+
+                    // Acknowledge message after successful processing
+                    message.acknowledge();
                 } catch (Exception e) {
+                    // Don't acknowledge - message will be redelivered
                     errorConsumer.accept(e);
+                    runContext.logger().warn("Failed to process JMS message, will be redelivered", e);
                 }
             });
 
