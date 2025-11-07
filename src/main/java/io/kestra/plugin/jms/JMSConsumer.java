@@ -165,8 +165,8 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
                     runContext.logger().error("Asynchronous JMS Connection Error: {}", exception.getMessage(), exception)
             );
 
-            //  Create the Session object
-            this.session = (SessionAdapter) this.connection.createSession();
+            //  Create the Session object with CLIENT_ACKNOWLEDGE for at-least-once delivery semantics
+            this.session = (SessionAdapter) this.connection.createSession(false, SessionAdapter.CLIENT_ACKNOWLEDGE);
 
             //  Create the Destination object depending on the Destination Type (QUEUE or TOPIC)
             String destName = runContext.render(task.destination.getDestinationName());
@@ -205,6 +205,9 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
                 }
 
                 messageProcessor.accept(JMSMessage.of(message, this.rSerdeType));
+
+                // Acknowledge message after successful processing
+                message.acknowledge();
             }
         }
 
