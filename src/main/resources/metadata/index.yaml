@@ -1,0 +1,8 @@
+group: io.kestra.plugin.jms
+name: "jms"
+title: "JMS"
+description: "JMS messaging support plugins Trigger/Consumer/Producer"
+body: ""
+videos: []
+createdBy: "Conapi GmbH"
+managedBy: "Kestra Core Team"
