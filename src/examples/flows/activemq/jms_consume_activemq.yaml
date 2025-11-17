@@ -11,7 +11,7 @@ description: |
 
 tasks:
   - id: consume_messages
-    type: io.kestra.plugin.jms.JMSConsumer
+    type: io.kestra.plugin.jms.Consume
     connectionFactoryConfig:
       type: DIRECT
       connectionFactoryClass: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory

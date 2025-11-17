@@ -4,7 +4,7 @@ namespace: at.conapi
 tasks:
 
   - id: jms-consume
-    type: io.kestra.plugin.jms.JMSConsumer
+    type: io.kestra.plugin.jms.Consume
     connectionFactoryConfig:
       type: JNDI
       # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR

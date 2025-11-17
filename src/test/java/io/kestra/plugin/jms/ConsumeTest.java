@@ -1,13 +1,9 @@
 package io.kestra.plugin.jms;
 
 import at.conapi.oss.jms.adapter.AbstractDestination;
-import com.fasterxml.jackson.core.type.TypeReference;
-import io.kestra.core.models.executions.Execution;
-import io.kestra.core.models.flows.State;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
-import io.kestra.core.serializers.FileSerde;
 import io.kestra.core.serializers.JacksonMapper;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
@@ -27,7 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @KestraTest
-class JMSConsumerTest extends AbstractJMSTest {
+class ConsumeTest extends AbstractJMSTest {
 
     @Inject
     private RunContextFactory runContextFactory;
@@ -41,7 +37,7 @@ class JMSConsumerTest extends AbstractJMSTest {
         // Configure and run consumer
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSConsumer task = JMSConsumer.builder()
+        Consume task = Consume.builder()
             .id("consume-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
@@ -62,7 +58,7 @@ class JMSConsumerTest extends AbstractJMSTest {
             .serdeType(Property.of(SerdeType.STRING))
             .build();
 
-        JMSConsumer.Output output = task.run(runContext);
+        Consume.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getCount(), is(1));
@@ -85,7 +81,7 @@ class JMSConsumerTest extends AbstractJMSTest {
         // Configure and run consumer
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSConsumer task = JMSConsumer.builder()
+        Consume task = Consume.builder()
             .id("consume-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
@@ -106,7 +102,7 @@ class JMSConsumerTest extends AbstractJMSTest {
             .serdeType(Property.of(SerdeType.STRING))
             .build();
 
-        JMSConsumer.Output output = task.run(runContext);
+        Consume.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getCount(), is(3));
@@ -127,7 +123,7 @@ class JMSConsumerTest extends AbstractJMSTest {
         // Configure consumer with message selector
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSConsumer task = JMSConsumer.builder()
+        Consume task = Consume.builder()
             .id("consume-test-selector")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
@@ -149,7 +145,7 @@ class JMSConsumerTest extends AbstractJMSTest {
             .serdeType(Property.of(SerdeType.STRING))
             .build();
 
-        JMSConsumer.Output output = task.run(runContext);
+        Consume.Output output = task.run(runContext);
 
         // Should only consume 2 messages (those with priority = 10)
         assertThat(output.getCount(), is(2));
@@ -170,7 +166,7 @@ class JMSConsumerTest extends AbstractJMSTest {
         // Configure consumer with short timeout
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSConsumer task = JMSConsumer.builder()
+        Consume task = Consume.builder()
             .id("consume-test-timeout")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
@@ -191,7 +187,7 @@ class JMSConsumerTest extends AbstractJMSTest {
             .serdeType(Property.of(SerdeType.STRING))
             .build();
 
-        JMSConsumer.Output output = task.run(runContext);
+        Consume.Output output = task.run(runContext);
 
         // Should consume 0 messages due to timeout
         assertThat(output.getCount(), is(0));
