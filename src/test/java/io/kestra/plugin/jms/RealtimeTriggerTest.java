@@ -1,15 +1,14 @@
 package io.kestra.plugin.jms;
 
 import at.conapi.oss.jms.adapter.AbstractDestination;
+import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.flows.Flow;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.junit.annotations.KestraTest;
-import org.junit.jupiter.api.Test;
-
 import jakarta.jms.*;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
@@ -17,7 +16,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @KestraTest
-class JMSRealtimeTriggerTest extends AbstractJMSTest {
+class RealtimeTriggerTest extends AbstractJMSTest {
 
     @Test
     void triggerOnMessageArrival() throws Exception {
@@ -33,7 +32,7 @@ class JMSRealtimeTriggerTest extends AbstractJMSTest {
             .namespace("io.kestra.test")
             .revision(1)
             .triggers(java.util.List.of(
-                JMSRealtimeTrigger.builder()
+                RealtimeTrigger.builder()
                     .id(triggerId)
                     .connectionFactoryConfig(
                         ConnectionFactoryConfig.Direct.builder()
@@ -57,9 +56,9 @@ class JMSRealtimeTriggerTest extends AbstractJMSTest {
 
         // Verify trigger configuration
         assertThat(flow.getTriggers(), hasSize(1));
-        assertThat(flow.getTriggers().get(0), instanceOf(JMSRealtimeTrigger.class));
+        assertThat(flow.getTriggers().get(0), instanceOf(RealtimeTrigger.class));
 
-        JMSRealtimeTrigger trigger = (JMSRealtimeTrigger) flow.getTriggers().get(0);
+        RealtimeTrigger trigger = (RealtimeTrigger) flow.getTriggers().get(0);
         // Note: In tests, we access the Property directly without rendering
         // trigger.getDestination() returns Property<JMSDestination>
         // We just verify the trigger was configured correctly
@@ -79,7 +78,7 @@ class JMSRealtimeTriggerTest extends AbstractJMSTest {
             .namespace("io.kestra.test")
             .revision(1)
             .triggers(java.util.List.of(
-                JMSRealtimeTrigger.builder()
+                RealtimeTrigger.builder()
                     .id(triggerId)
                     .connectionFactoryConfig(
                         ConnectionFactoryConfig.Direct.builder()
@@ -104,9 +103,9 @@ class JMSRealtimeTriggerTest extends AbstractJMSTest {
 
         // Verify trigger configuration includes selector
         assertThat(flow.getTriggers(), hasSize(1));
-        assertThat(flow.getTriggers().get(0), instanceOf(JMSRealtimeTrigger.class));
+        assertThat(flow.getTriggers().get(0), instanceOf(RealtimeTrigger.class));
 
-        JMSRealtimeTrigger trigger = (JMSRealtimeTrigger) flow.getTriggers().get(0);
+        RealtimeTrigger trigger = (RealtimeTrigger) flow.getTriggers().get(0);
         assertThat(trigger.getMessageSelector(), is("urgent = TRUE"));
         assertThat(trigger.getDestination(), notNullValue());
     }
