@@ -36,7 +36,7 @@ class RealtimeTriggerTest extends AbstractJMSTest {
                     .id(triggerId)
                     .connectionFactoryConfig(
                         ConnectionFactoryConfig.Direct.builder()
-                            .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                            .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                             .connectionProperties(Map.of(
                                 "brokerURL", ACTIVEMQ_URL,
                                 "user", ACTIVEMQ_USER,
@@ -48,7 +48,7 @@ class RealtimeTriggerTest extends AbstractJMSTest {
                         .destinationName(TEST_QUEUE_NAME)
                         .destinationType(AbstractDestination.DestinationType.QUEUE)
                         .build())
-                    .serdeType(Property.of(SerdeType.STRING))
+                    .serdeType(Property.ofValue(SerdeType.STRING))
                     .build()
             ))
             .tasks(java.util.List.of())
@@ -82,7 +82,7 @@ class RealtimeTriggerTest extends AbstractJMSTest {
                     .id(triggerId)
                     .connectionFactoryConfig(
                         ConnectionFactoryConfig.Direct.builder()
-                            .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                            .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                             .connectionProperties(Map.of(
                                 "brokerURL", ACTIVEMQ_URL,
                                 "user", ACTIVEMQ_USER,
@@ -95,7 +95,7 @@ class RealtimeTriggerTest extends AbstractJMSTest {
                         .destinationType(AbstractDestination.DestinationType.QUEUE)
                         .build())
                     .messageSelector("urgent = TRUE")
-                    .serdeType(Property.of(SerdeType.STRING))
+                    .serdeType(Property.ofValue(SerdeType.STRING))
                     .build()
             ))
             .tasks(java.util.List.of())

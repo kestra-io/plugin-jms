@@ -41,7 +41,7 @@ class ConsumeTest extends AbstractJMSTest {
             .id("consume-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -53,9 +53,9 @@ class ConsumeTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(Property.of(1))
-            .maxWaitTimeout(Property.of(5000L))
-            .serdeType(Property.of(SerdeType.STRING))
+            .maxMessages(Property.ofValue(1))
+            .maxWaitTimeout(Property.ofValue(5000L))
+            .serdeType(Property.ofValue(SerdeType.STRING))
             .build();
 
         Consume.Output output = task.run(runContext);
@@ -85,7 +85,7 @@ class ConsumeTest extends AbstractJMSTest {
             .id("consume-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -97,9 +97,9 @@ class ConsumeTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(Property.of(3))
-            .maxWaitTimeout(Property.of(5000L))
-            .serdeType(Property.of(SerdeType.STRING))
+            .maxMessages(Property.ofValue(3))
+            .maxWaitTimeout(Property.ofValue(5000L))
+            .serdeType(Property.ofValue(SerdeType.STRING))
             .build();
 
         Consume.Output output = task.run(runContext);
@@ -127,7 +127,7 @@ class ConsumeTest extends AbstractJMSTest {
             .id("consume-test-selector")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -140,9 +140,9 @@ class ConsumeTest extends AbstractJMSTest {
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
             .messageSelector("priority = 10")
-            .maxMessages(Property.of(10))
-            .maxWaitTimeout(Property.of(5000L))
-            .serdeType(Property.of(SerdeType.STRING))
+            .maxMessages(Property.ofValue(10))
+            .maxWaitTimeout(Property.ofValue(5000L))
+            .serdeType(Property.ofValue(SerdeType.STRING))
             .build();
 
         Consume.Output output = task.run(runContext);
@@ -170,7 +170,7 @@ class ConsumeTest extends AbstractJMSTest {
             .id("consume-test-timeout")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -182,9 +182,9 @@ class ConsumeTest extends AbstractJMSTest {
                 .destinationName(TEST_QUEUE_NAME)
                 .destinationType(AbstractDestination.DestinationType.QUEUE)
                 .build())
-            .maxMessages(Property.of(10))
-            .maxWaitTimeout(Property.of(2000L)) // 2 seconds timeout
-            .serdeType(Property.of(SerdeType.STRING))
+            .maxMessages(Property.ofValue(10))
+            .maxWaitTimeout(Property.ofValue(2000L)) // 2 seconds timeout
+            .serdeType(Property.ofValue(SerdeType.STRING))
             .build();
 
         Consume.Output output = task.run(runContext);

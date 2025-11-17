@@ -47,7 +47,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -95,7 +95,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -149,7 +149,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-json")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -200,7 +200,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-headers")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -249,7 +249,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-plain-string")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -295,7 +295,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-json-string")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -350,7 +350,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-single-json")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -416,7 +416,7 @@ class ProduceTest extends AbstractJMSTest {
             .id("produce-test-uri")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
