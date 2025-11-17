@@ -24,8 +24,6 @@ import lombok.experimental.SuperBuilder;
 import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
 
-import java.util.Map;
-
 /**
  * A Kestra task to produce messages to a JMS-compliant message broker.
  * This task connects to a broker and sends messages from a specified source.
@@ -36,7 +34,9 @@ import java.util.Map;
 @Getter
 @NoArgsConstructor
 @Schema(title = "Produce messages to a JMS queue or topic.")
-@Plugin(examples = {
+@Plugin(
+    aliases = {"io.kestra.plugin.jms.JMSProducer"},
+    examples = {
         @Example(
                 full = true,
                 title = "Produce a List of Messages to a JMS Queue",
@@ -46,7 +46,7 @@ import java.util.Map;
 
                         tasks:
                           - id: produce_to_queue
-                            type: io.kestra.plugin.jms.JMSProducer
+                            type: io.kestra.plugin.jms.Produce
                             connectionFactoryConfig:
                               type: DIRECT
                               providerJarPaths: kestra:///jms/activemq-client.jar
@@ -66,7 +66,7 @@ import java.util.Map;
                         """
         )
 })
-public class JMSProducer extends AbstractJmsTask implements RunnableTask<JMSProducer.Output>, Data.From {
+public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Output>, Data.From {
 
     // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
