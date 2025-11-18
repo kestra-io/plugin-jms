@@ -10,7 +10,7 @@ description: |
 
 tasks:
   - id: send_message
-    type: io.kestra.plugin.jms.JMSProducer
+    type: io.kestra.plugin.jms.Produce
     connectionFactoryConfig:
       type: DIRECT
       connectionFactoryClass: com.rabbitmq.jms.admin.RMQConnectionFactory

@@ -3,7 +3,7 @@ namespace: at.conapi
 
 triggers:
   - id: jms-trigger
-    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    type: io.kestra.plugin.jms.RealtimeTrigger
     connectionFactoryConfig:
       type: DIRECT
       # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
