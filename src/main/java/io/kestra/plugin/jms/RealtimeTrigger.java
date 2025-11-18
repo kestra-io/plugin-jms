@@ -5,8 +5,6 @@ import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
 import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
 import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
 import at.conapi.oss.jms.adapter.impl.SessionAdapter;
-import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
-import io.kestra.plugin.jms.serde.SerdeType;
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
@@ -14,6 +12,8 @@ import io.kestra.core.models.conditions.ConditionContext;
 import io.kestra.core.models.executions.Execution;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.models.triggers.*;
+import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
+import io.kestra.plugin.jms.serde.SerdeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -33,15 +33,16 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor
 @Schema(
-        title = "Trigger a flow execution on a JMS message.",
-        description = "This trigger listens to a JMS queue or topic and starts a new flow for each message."
+    title = "Trigger a flow execution on a JMS message.",
+    description = "This trigger listens to a JMS queue or topic and starts a new flow for each message."
 )
 @Plugin(
-        examples = {
-                @Example(
-                        title = "Start a flow for each message on a specific JMS queue.",
-                        full = true,
-                        code = """
+    aliases = {"io.kestra.plugin.jms.JMSRealtimeTrigger"},
+    examples = {
+        @Example(
+            title = "Start a flow for each message on a specific JMS queue.",
+            full = true,
+            code = """
                 id: jms-realtime-flow
                 namespace: at.conapi.dev
 
@@ -52,7 +53,7 @@ import java.util.Optional;
 
                 triggers:
                   - id: jms-trigger
-                    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+                    type: io.kestra.plugin.jms.RealtimeTrigger
                     connectionFactoryConfig:
                       type: DIRECT
                       providerJarPaths: kestra:///jms/activemq-client.jar
@@ -61,10 +62,10 @@ import java.util.Optional;
                       name: "kestra.events"
                       destinationType: QUEUE
                 """
-                )
-        }
+        )
+    }
 )
-public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTriggerInterface, TriggerOutput<JMSMessage> {
+public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerInterface, TriggerOutput<JMSMessage> {
 
     // NOTE: Using @PluginProperty instead of Property<ConnectionFactoryConfig> wrapper.
     // Polymorphic configuration objects with @JsonTypeInfo/@JsonSubTypes don't deserialize correctly
@@ -84,8 +85,8 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
     private JMSDestination destination;
 
     @Schema(
-            title = "Message selector to only consume specific messages.",
-            description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+        title = "Message selector to only consume specific messages.",
+        description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
     )
     private String messageSelector;
 
@@ -114,7 +115,7 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
             } catch (Exception e) {
                 // If setup fails, we emit the error and the Flux terminates.
                 emitter.error(e);
-                if(jmsListener != null) {
+                if (jmsListener != null) {
                     jmsListener.close();
                 }
             }
@@ -138,13 +139,13 @@ public class JMSRealtimeTrigger extends AbstractTrigger implements RealtimeTrigg
         private ConnectionAdapter connection;
 
         public JmsListener(
-                io.kestra.core.runners.RunContext runContext,
-                ConnectionFactoryConfig connectionFactoryConfig,
-                JMSDestination destination,
-                String messageSelector,
-                SerdeType serdeType,
-                java.util.function.Consumer<JMSMessage> messageConsumer,
-                java.util.function.Consumer<Throwable> errorConsumer
+            io.kestra.core.runners.RunContext runContext,
+            ConnectionFactoryConfig connectionFactoryConfig,
+            JMSDestination destination,
+            String messageSelector,
+            SerdeType serdeType,
+            java.util.function.Consumer<JMSMessage> messageConsumer,
+            java.util.function.Consumer<Throwable> errorConsumer
         ) {
             this.runContext = runContext;
             this.connectionFactoryConfig = connectionFactoryConfig;
