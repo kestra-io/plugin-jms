@@ -37,7 +37,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 @NoArgsConstructor
 @Schema(title = "Consume messages from a JMS queue or topic.", description = "It is recommended to set `maxWaitTimeout` or `maxMessages`.")
-@Plugin(examples = {
+@Plugin(
+    aliases = {"io.kestra.plugin.jms.JMSConsumer"},
+    examples = {
         @Example(
                 full = true,
                 title = "Consume 100 Messages from a JMS Queue",
@@ -47,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
                         tasks:
                           - id: consume_from_queue
-                            type: io.kestra.plugin.jms.JMSConsumer
+                            type: io.kestra.plugin.jms.Consume
                             connectionFactoryConfig:
                               type: DIRECT
                               providerJarPaths: kestra:///jms/activemq-client.jar
@@ -63,7 +65,7 @@ import java.util.concurrent.atomic.AtomicInteger;
         )
 })
 
-public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSConsumer.Output> {
+public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Output> {
 
     // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
@@ -154,7 +156,7 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
         private final SerdeType rSerdeType;
         private final long rMaxWaitTimeout;
 
-        public ConsumeRunner(RunContext runContext, JMSConsumer task) throws Exception {
+        public ConsumeRunner(RunContext runContext, Consume task) throws Exception {
             this.rSerdeType = runContext.render(task.serdeType).as(SerdeType.class).orElseThrow();
             this.rMaxWaitTimeout = runContext.render(task.maxWaitTimeout).as(Long.class).orElseThrow();
 
@@ -165,8 +167,8 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
                     runContext.logger().error("Asynchronous JMS Connection Error: {}", exception.getMessage(), exception)
             );
 
-            //  Create the Session object
-            this.session = (SessionAdapter) this.connection.createSession();
+            //  Create the Session object with CLIENT_ACKNOWLEDGE for at-least-once delivery semantics
+            this.session = (SessionAdapter) this.connection.createSession(false, SessionAdapter.CLIENT_ACKNOWLEDGE);
 
             //  Create the Destination object depending on the Destination Type (QUEUE or TOPIC)
             String destName = runContext.render(task.destination.getDestinationName());
@@ -205,6 +207,9 @@ public class JMSConsumer extends AbstractJmsTask implements RunnableTask<JMSCons
                 }
 
                 messageProcessor.accept(JMSMessage.of(message, this.rSerdeType));
+
+                // Acknowledge message after successful processing
+                message.acknowledge();
             }
         }
 

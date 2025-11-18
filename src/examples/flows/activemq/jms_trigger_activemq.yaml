@@ -22,7 +22,7 @@ tasks:
 
 triggers:
   - id: watch_queue
-    type: io.kestra.plugin.jms.JMSRealtimeTrigger
+    type: io.kestra.plugin.jms.RealtimeTrigger
     connectionFactoryConfig:
       type: DIRECT
       connectionFactoryClass: org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory

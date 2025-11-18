@@ -51,7 +51,7 @@ dependencies {
     compileOnly group: "io.kestra", name: "script", version: kestraVersion
 
     // JMS adapter
-    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.1"
+    implementation group: "at.conapi.oss", name: "jms-adapter", version: "1.0.2"
 }
 
 

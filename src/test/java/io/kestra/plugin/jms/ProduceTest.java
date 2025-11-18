@@ -1,8 +1,7 @@
 package io.kestra.plugin.jms;
 
 import at.conapi.oss.jms.adapter.AbstractDestination;
-import io.kestra.core.models.executions.Execution;
-import io.kestra.core.models.flows.State;
+import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
@@ -11,16 +10,11 @@ import io.kestra.core.storages.StorageInterface;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.junit.annotations.KestraTest;
 import jakarta.inject.Inject;
+import jakarta.jms.*;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
 
-import jakarta.jms.Connection;
-import jakarta.jms.Message;
-import jakarta.jms.MessageConsumer;
-import jakarta.jms.Session;
-import jakarta.jms.TextMessage;
 import java.io.FileInputStream;
 import java.net.URI;
 import java.nio.file.Files;
@@ -33,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @KestraTest
-class JMSProducerTest extends AbstractJMSTest {
+class ProduceTest extends AbstractJMSTest {
 
     @Inject
     private RunContextFactory runContextFactory;
@@ -49,11 +43,11 @@ class JMSProducerTest extends AbstractJMSTest {
         // Configure and run producer
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -69,7 +63,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(1));
@@ -97,11 +91,11 @@ class JMSProducerTest extends AbstractJMSTest {
 
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-multiple")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -121,7 +115,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(3));
@@ -151,11 +145,11 @@ class JMSProducerTest extends AbstractJMSTest {
 
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-json")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -171,7 +165,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.JSON)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(1));
@@ -202,11 +196,11 @@ class JMSProducerTest extends AbstractJMSTest {
 
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-headers")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -225,7 +219,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(1));
@@ -251,11 +245,11 @@ class JMSProducerTest extends AbstractJMSTest {
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
         // Test with plain string (not JSON) - should be wrapped in JMSMessage
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-plain-string")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -271,7 +265,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(1));
@@ -297,11 +291,11 @@ class JMSProducerTest extends AbstractJMSTest {
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
         // Test with JSON array string (using Data.From pattern)
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-json-string")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -322,7 +316,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(2));
@@ -352,11 +346,11 @@ class JMSProducerTest extends AbstractJMSTest {
         RunContext runContext = runContextFactory.of(Map.of("testId", IdUtils.create()));
 
         // Test with single JSON object string (using Data.From pattern)
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-single-json")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -374,7 +368,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(1));
@@ -418,11 +412,11 @@ class JMSProducerTest extends AbstractJMSTest {
         ));
 
         // Test with Kestra URI (using Data.From pattern)
-        JMSProducer task = JMSProducer.builder()
+        Produce task = Produce.builder()
             .id("produce-test-uri")
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
-                    .connectionFactoryClass(Property.of("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                    .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
                     .connectionProperties(Map.of(
                         "brokerURL", ACTIVEMQ_URL,
                         "user", ACTIVEMQ_USER,
@@ -438,7 +432,7 @@ class JMSProducerTest extends AbstractJMSTest {
             .serdeType(SerdeType.STRING)
             .build();
 
-        JMSProducer.Output output = task.run(runContext);
+        Produce.Output output = task.run(runContext);
 
         // Verify output
         assertThat(output.getMessagesCount(), is(3));
