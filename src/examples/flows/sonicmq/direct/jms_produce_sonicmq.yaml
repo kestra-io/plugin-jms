@@ -4,7 +4,7 @@ namespace: at.conapi
 tasks:
 
   - id: jms-send
-    type: io.kestra.plugin.jms.JMSProducer
+    type: io.kestra.plugin.jms.Produce
     connectionFactoryConfig:
       type: DIRECT
       # Enable FilteredClassLoader for SonicMQ which bundles javax.jms classes in its JAR
