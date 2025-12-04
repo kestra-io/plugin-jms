@@ -1,8 +1,8 @@
 group: io.kestra.plugin.jms
 name: "jms"
 title: "JMS"
-description: "JMS messaging support plugins Trigger/Consumer/Producer"
-body: ""
+description: "Tasks that produce, consume, and trigger workflows from JMS queues or topics."
+body: "Configure the JMS connection factory (broker URL, credentials, client ID) and destination name to publish messages, consume with polling or real-time triggers, and control serialization and acknowledgement so Kestra can coordinate with ActiveMQ, Artemis, or any JMS-compliant broker."
 videos: []
 createdBy: "Conapi GmbH"
 managedBy: "Kestra Core Team"
