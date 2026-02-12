@@ -1,8 +1,6 @@
 @PluginSubGroup(
     title = "JMS",
-    description = "JMS messaging support plugins Trigger/Consumer/Producer",
-    categories = PluginSubGroup.PluginCategory.MESSAGING,
-    categories = {
+    description = "JMS messaging support plugins Trigger/Consumer/Producer",categories = {
         PluginSubGroup.PluginCategory.DATA,
         PluginSubGroup.PluginCategory.INFRASTRUCTURE
     }
