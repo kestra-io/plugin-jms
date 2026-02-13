@@ -11,12 +11,12 @@ import lombok.Getter;
 @Builder
 public class JMSDestination
 {
-    @Schema(title = "The name of the JMS queue or topic.")
+    @Schema(title = "Destination name", description = "Rendered JMS queue or topic name")
     @PluginProperty(dynamic = true)
     @NotNull
     private String destinationName;
 
-    @Schema(title = "The type of the destination.", defaultValue = "QUEUE")
+    @Schema(title = "Destination type", description = "QUEUE or TOPIC", defaultValue = "QUEUE")
     @PluginProperty
     @Builder.Default
     private AbstractDestination.DestinationType destinationType = AbstractDestination.DestinationType.QUEUE;

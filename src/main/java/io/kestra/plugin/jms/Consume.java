@@ -36,7 +36,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @NoArgsConstructor
-@Schema(title = "Consume messages from a JMS queue or topic.", description = "It is recommended to set `maxWaitTimeout` or `maxMessages`.")
+@Schema(
+    title = "Consume messages from a JMS destination",
+    description = "Connects to a JMS queue or topic, receives messages until limits are hit, and writes them to internal storage. CLIENT_ACKNOWLEDGE is used for at-least-once delivery; set maxMessages or maxWaitTimeout to bound execution."
+)
 @Plugin(
     aliases = {"io.kestra.plugin.jms.JMSConsumer"},
     examples = {
@@ -73,30 +76,30 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
     // config objects entirely, using flat Property<String> fields instead.
     @PluginProperty
     @NotNull
-    @Schema(title = "The destination to consume messages from.")
+    @Schema(title = "Destination to consume", description = "Rendered queue or topic name; destinationType selects QUEUE vs TOPIC")
     private JMSDestination destination;
 
     @PluginProperty(dynamic = true)
     @Schema(
-            title = "Message selector to only consume specific messages.",
-            description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+            title = "Message selector",
+            description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
     )
     private String messageSelector;
 
     @Builder.Default
     @Schema(
-            title = "The format for deserializing the message body.",
-            description = "Determines how message bodies are deserialized. STRING for text messages, JSON for JSON-formatted text, BYTES for binary data.",
+            title = "Deserialization format",
+            description = "STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
             defaultValue = "STRING"
     )
     private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
     @Builder.Default
-    @Schema(title = "The maximum number of messages to consume. (default 1)")
+    @Schema(title = "Maximum messages to consume", description = "Rendered upper bound on messages; default 1")
     private Property<Integer> maxMessages = Property.ofValue(1);
 
     @Builder.Default
-    @Schema(title = "The maximum time to wait for messages in milliseconds. (default 0, never times out)")
+    @Schema(title = "Maximum wait time (ms)", description = "Rendered timeout in milliseconds; default 0 waits indefinitely")
     private Property<Long> maxWaitTimeout = Property.ofValue(0L);
 
     @Override
@@ -142,7 +145,7 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
         @Schema(title = "Number of messages consumed.")
         private final Integer count;
 
-        @Schema(title = "URI of a Kestra internal storage file containing the consumed messages.")
+        @Schema(title = "URI of the internal storage file containing the consumed messages.")
         private final URI uri;
     }
 
