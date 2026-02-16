@@ -27,43 +27,38 @@ import java.util.Map;
 public abstract class ConnectionFactoryConfig {
 
     @Schema(
-            title = "Provider JAR Path(s)",
-            description = "The path to the JMS provider's JAR file(s). This can be a single path or a list of paths (JARs). " +
-                    "(e.g., 'file:///app/plugins/jms-libs/client.jar')." +
-                    "If not specified, all jar files in the 'jms-libs' sub folder of your plugins location will be added to the classpath."
+            title = "Provider JAR paths",
+            description = "One or more paths to the JMS provider JARs (e.g., `file:///app/plugins/jms-libs/client.jar`). If unset, all JARs under the plugins/jms-libs folder are added to the classpath."
     )
     @PluginProperty(dynamic = true)
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // Allow single string in YAML
     private List<String> providerJarPaths;
 
     @Schema(
-            title = "The username for broker authentication.",
-            description = "This is used when creating the connection to the JMS broker. Omit for JNDI if credentials are embedded in the ConnectionFactory."
+            title = "Username for broker authentication",
+            description = "Rendered username used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
     @PluginProperty(dynamic = true)
     private String username;
 
     @Schema(
-            title = "The password for broker authentication.",
-            description = "This is used when creating the connection to the JMS broker. Omit for JNDI if credentials are embedded in the ConnectionFactory."
+            title = "Password for broker authentication",
+            description = "Rendered password used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
     @PluginProperty(dynamic = true)
     private String password;
 
     @Schema(
-            title = "Connection Properties",
-            description = "Additional (Pojo) properties to set on the Direct/JNDI ConnectionFactory instance."
+            title = "Connection properties",
+            description = "Additional POJO properties applied to the Direct or JNDI ConnectionFactory instance."
     )
     @PluginProperty(dynamic =true)
     private Map<String, String> connectionProperties;
 
     @Builder.Default
     @Schema(
-            title = "Use Filtered ClassLoader",
-            description = "Enable this for JMS providers that bundle JMS API classes in their JAR (e.g., SonicMQ/Aurea Messenger). " +
-                    "When enabled, JMS API classes are loaded from the parent classloader to prevent ClassCastException. " +
-                    "Leave disabled (default: false) for well-behaved providers like RabbitMQ, ActiveMQ, Artemis, etc. " +
-                    "Only enable this if you encounter ClassCastException with javax.jms or jakarta.jms classes.",
+            title = "Use filtered classloader",
+            description = "Enable only for providers that ship JMS API classes (e.g., SonicMQ/Aurea) to avoid ClassCastException by loading JMS APIs from the parent classloader. Leave disabled for typical providers like RabbitMQ, ActiveMQ, Artemis.",
             defaultValue = "false"
     )
     private Property<Boolean> useFilteredClassLoader = Property.ofValue(false);
@@ -80,8 +75,8 @@ public abstract class ConnectionFactoryConfig {
     @JsonDeserialize(builder = Direct.DirectBuilderImpl.class)
     public static final class Direct extends ConnectionFactoryConfig {
         @Schema(
-                title = "Connection Factory Class",
-                description = "The fully qualified class name of the JMS ConnectionFactory.",
+                title = "ConnectionFactory class",
+                description = "Fully qualified class name of the JMS ConnectionFactory implementation.",
                 examples = {"org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"}
         )
         @NotNull
@@ -100,24 +95,24 @@ public abstract class ConnectionFactoryConfig {
     @JsonDeserialize(builder = Jndi.JndiBuilderImpl.class)
     public static final class Jndi extends ConnectionFactoryConfig {
         @Schema(
-                title = "JNDI Initial Context Factory",
+                title = "JNDI initial context factory",
                 example = "org.wildfly.naming.client.WildFlyInitialContextFactory"
         )
         @NotNull
         private Property<String> jndiInitialContextFactory;
 
-        @Schema(title = "JNDI Provider URL", example = "remote+http://localhost:8080")
+        @Schema(title = "JNDI provider URL", example = "remote+http://localhost:8080")
         @NotNull
         private Property<String> jndiProviderUrl;
 
-        @Schema(title = "JNDI Principal", example = "Administrator")
+        @Schema(title = "JNDI principal", example = "Administrator")
         private Property<String> jndiPrincipal;
 
-        @Schema(title = "JNDI Credentials", example = "password")
+        @Schema(title = "JNDI credentials", example = "password")
         private Property<String> jndiCredentials;
 
 
-        @Schema(title = "JNDI Connection Factory Name", example = "jms/RemoteConnectionFactory")
+        @Schema(title = "JNDI ConnectionFactory name", example = "jms/RemoteConnectionFactory")
         @NotNull
         private Property<String> jndiConnectionFactoryName;
 

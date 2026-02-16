@@ -33,8 +33,8 @@ import java.util.Optional;
 @Getter
 @NoArgsConstructor
 @Schema(
-    title = "Trigger a flow execution on a JMS message.",
-    description = "This trigger listens to a JMS queue or topic and starts a new flow for each message."
+    title = "Start a flow on JMS messages",
+    description = "Listens to a JMS queue or topic and launches a new execution for each received message. Uses CLIENT_ACKNOWLEDGE for at-least-once delivery; payloads are deserialized with serdeType (STRING default)."
 )
 @Plugin(
     aliases = {"io.kestra.plugin.jms.JMSRealtimeTrigger"},
@@ -81,17 +81,17 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
     // config objects entirely, using flat Property<String> fields instead.
     @PluginProperty
     @NotNull
-    @Schema(title = "The destination to consume messages from.")
+    @Schema(title = "Destination to consume", description = "Rendered queue or topic name; destinationType selects QUEUE vs TOPIC")
     private JMSDestination destination;
 
     @Schema(
-        title = "Message selector to only consume specific messages.",
-        description = "A JMS message selector expression to filter messages. Uses SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+        title = "Message selector",
+        description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
     )
     private String messageSelector;
 
     @Builder.Default
-    @Schema(title = "The format for deserializing the message body.", defaultValue = "STRING")
+    @Schema(title = "Deserialization format", description = "STRING for text, JSON for JSON text, BYTES for binary payloads.", defaultValue = "STRING")
     private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
     @Override
