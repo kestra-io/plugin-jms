@@ -33,7 +33,10 @@ import reactor.core.publisher.Flux;
 @EqualsAndHashCode(callSuper = true)
 @Getter
 @NoArgsConstructor
-@Schema(title = "Produce messages to a JMS queue or topic.")
+@Schema(
+    title = "Publish messages to a JMS destination",
+    description = "Connects with the configured JMS ConnectionFactory and publishes rendered payloads from `from` to the destination name as a queue or topic. Defaults use deliveryMode 2 (PERSISTENT), priority 4, timeToLive 0 (no expiry); payloads are serialized via serdeType (STRING default, JSON, BYTES) and plain strings without JSON/URI markers are sent as text."
+)
 @Plugin(
     aliases = {"io.kestra.plugin.jms.JMSProducer"},
     examples = {
@@ -74,19 +77,19 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
     // config objects entirely, using flat Property<String> fields instead.
     @PluginProperty
     @NotNull
-    @Schema(title = "The destination to send messages to.")
+    @Schema(title = "Destination for messages", description = "Rendered queue or topic name; destinationType chooses QUEUE vs TOPIC")
     private JMSDestination destination;
 
     @Builder.Default
-    @Schema(title = "The JMS priority used to send the message (default: 4)")
+    @Schema(title = "JMS priority", description = "Rendered integer priority 0-9; default 4")
     private Property<Integer> priority = Property.ofValue(4);
 
     @Builder.Default
-    @Schema(title = "The JMS delivery mode used to send the message (default: 2 = PERSISTENT)")
+    @Schema(title = "JMS delivery mode", description = "Rendered delivery mode flag; default 2 (PERSISTENT)")
     private Property<Integer> deliveryMode = Property.ofValue(2);
 
     @Builder.Default
-    @Schema(title = "The time to live of the sent message in milliseconds (default: 0 = does not expire)")
+    @Schema(title = "Message time to live", description = "Rendered TTL in milliseconds; default 0 keeps the message indefinitely")
     private Property<Long> timeToLive = Property.ofValue(0L);
 
     @NotNull
@@ -94,8 +97,8 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
 
     @Builder.Default
     @Schema(
-            title = "The serialization format for the message body.",
-            description = "Determines how message bodies are serialized. STRING for text messages, JSON for JSON-formatted text, BYTES for binary data.",
+            title = "Serialization format for message body",
+            description = "Determines how message bodies are serialized: STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
             defaultValue = "STRING"
     )
     private SerdeType serdeType = SerdeType.STRING;
