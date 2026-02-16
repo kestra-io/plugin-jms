@@ -28,7 +28,7 @@ public abstract class ConnectionFactoryConfig {
 
     @Schema(
             title = "Provider JAR paths",
-            description = "One or more paths to the JMS provider JARs (e.g., file:///app/plugins/jms-libs/client.jar). If unset, all JARs under the plugins/jms-libs folder are added to the classpath."
+            description = "One or more paths to the JMS provider JARs (e.g., `file:///app/plugins/jms-libs/client.jar`). If unset, all JARs under the plugins/jms-libs folder are added to the classpath."
     )
     @PluginProperty(dynamic = true)
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // Allow single string in YAML
