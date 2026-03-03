@@ -138,7 +138,7 @@ dependencies {
     testImplementation "org.apache.activemq:artemis-jakarta-client:2.51.0"
 
     // ActiveMQ Classic client for integration tests and examples (classic ActiveMQ 5.x)
-    testImplementation "org.apache.activemq:activemq-client:6.2.0"
+    testImplementation "org.apache.activemq:activemq-client:6.2.1"
 }
 
 /**********************************************************************************************************************\
