@@ -1,16 +1,18 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.flows.Flow;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
-import jakarta.jms.*;
-import org.junit.jupiter.api.Test;
 
-import java.util.Map;
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import jakarta.jms.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -31,26 +33,32 @@ class RealtimeTriggerTest extends AbstractJMSTest {
             .id(flowId)
             .namespace("io.kestra.test")
             .revision(1)
-            .triggers(java.util.List.of(
-                RealtimeTrigger.builder()
-                    .id(triggerId)
-                    .connectionFactoryConfig(
-                        ConnectionFactoryConfig.Direct.builder()
-                            .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                            .connectionProperties(Map.of(
-                                "brokerURL", ACTIVEMQ_URL,
-                                "user", ACTIVEMQ_USER,
-                                "password", ACTIVEMQ_PASSWORD
-                            ))
-                            .build()
-                    )
-                    .destination(JMSDestination.builder()
-                        .destinationName(TEST_QUEUE_NAME)
-                        .destinationType(AbstractDestination.DestinationType.QUEUE)
-                        .build())
-                    .serdeType(Property.ofValue(SerdeType.STRING))
-                    .build()
-            ))
+            .triggers(
+                java.util.List.of(
+                    RealtimeTrigger.builder()
+                        .id(triggerId)
+                        .connectionFactoryConfig(
+                            ConnectionFactoryConfig.Direct.builder()
+                                .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                                .connectionProperties(
+                                    Map.of(
+                                        "brokerURL", ACTIVEMQ_URL,
+                                        "user", ACTIVEMQ_USER,
+                                        "password", ACTIVEMQ_PASSWORD
+                                    )
+                                )
+                                .build()
+                        )
+                        .destination(
+                            JMSDestination.builder()
+                                .destinationName(TEST_QUEUE_NAME)
+                                .destinationType(AbstractDestination.DestinationType.QUEUE)
+                                .build()
+                        )
+                        .serdeType(Property.ofValue(SerdeType.STRING))
+                        .build()
+                )
+            )
             .tasks(java.util.List.of())
             .build();
 
@@ -77,27 +85,33 @@ class RealtimeTriggerTest extends AbstractJMSTest {
             .id(flowId)
             .namespace("io.kestra.test")
             .revision(1)
-            .triggers(java.util.List.of(
-                RealtimeTrigger.builder()
-                    .id(triggerId)
-                    .connectionFactoryConfig(
-                        ConnectionFactoryConfig.Direct.builder()
-                            .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                            .connectionProperties(Map.of(
-                                "brokerURL", ACTIVEMQ_URL,
-                                "user", ACTIVEMQ_USER,
-                                "password", ACTIVEMQ_PASSWORD
-                            ))
-                            .build()
-                    )
-                    .destination(JMSDestination.builder()
-                        .destinationName(TEST_QUEUE_NAME)
-                        .destinationType(AbstractDestination.DestinationType.QUEUE)
-                        .build())
-                    .messageSelector("urgent = TRUE")
-                    .serdeType(Property.ofValue(SerdeType.STRING))
-                    .build()
-            ))
+            .triggers(
+                java.util.List.of(
+                    RealtimeTrigger.builder()
+                        .id(triggerId)
+                        .connectionFactoryConfig(
+                            ConnectionFactoryConfig.Direct.builder()
+                                .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
+                                .connectionProperties(
+                                    Map.of(
+                                        "brokerURL", ACTIVEMQ_URL,
+                                        "user", ACTIVEMQ_USER,
+                                        "password", ACTIVEMQ_PASSWORD
+                                    )
+                                )
+                                .build()
+                        )
+                        .destination(
+                            JMSDestination.builder()
+                                .destinationName(TEST_QUEUE_NAME)
+                                .destinationType(AbstractDestination.DestinationType.QUEUE)
+                                .build()
+                        )
+                        .messageSelector("urgent = TRUE")
+                        .serdeType(Property.ofValue(SerdeType.STRING))
+                        .build()
+                )
+            )
             .tasks(java.util.List.of())
             .build();
 
@@ -114,8 +128,10 @@ class RealtimeTriggerTest extends AbstractJMSTest {
      * Helper method to send a test message to a queue.
      */
     private void sendTestMessage(String queueName, String messageText) throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             Queue queue = session.createQueue(queueName);
             MessageProducer producer = session.createProducer(queue);
@@ -129,8 +145,10 @@ class RealtimeTriggerTest extends AbstractJMSTest {
      * Helper method to send a test message with a boolean property.
      */
     private void sendTestMessageWithBooleanProperty(String queueName, String messageText, String propertyName, boolean propertyValue) throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             Queue queue = session.createQueue(queueName);
             MessageProducer producer = session.createProducer(queue);

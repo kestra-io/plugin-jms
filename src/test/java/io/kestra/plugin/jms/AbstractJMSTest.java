@@ -44,8 +44,10 @@ public abstract class AbstractJMSTest {
      * Cleans up test destinations by creating a connection and purging queues.
      */
     protected void cleanupDestinations() throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
 
@@ -68,8 +70,10 @@ public abstract class AbstractJMSTest {
      * Creates a test queue in ActiveMQ.
      */
     protected Queue createTestQueue() throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
             return session.createQueue(TEST_QUEUE_NAME);
         }
     }
@@ -78,8 +82,10 @@ public abstract class AbstractJMSTest {
      * Creates a test topic in ActiveMQ.
      */
     protected Topic createTestTopic() throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
             return session.createTopic(TEST_TOPIC_NAME);
         }
     }

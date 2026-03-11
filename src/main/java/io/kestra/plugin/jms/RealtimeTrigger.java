@@ -1,10 +1,9 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
-import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
-import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
-import at.conapi.oss.jms.adapter.impl.SessionAdapter;
+import java.util.Optional;
+
+import org.reactivestreams.Publisher;
+
 import io.kestra.core.models.annotations.Example;
 import io.kestra.core.models.annotations.Plugin;
 import io.kestra.core.models.annotations.PluginProperty;
@@ -14,14 +13,17 @@ import io.kestra.core.models.property.Property;
 import io.kestra.core.models.triggers.*;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
+
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
+import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
+import at.conapi.oss.jms.adapter.impl.SessionAdapter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.reactivestreams.Publisher;
 import reactor.core.publisher.Flux;
-
-import java.util.Optional;
 
 /**
  * A Kestra trigger that starts a new flow execution for each message received
@@ -37,7 +39,7 @@ import java.util.Optional;
     description = "Listens to a JMS queue or topic and launches a new execution for each received message. Uses CLIENT_ACKNOWLEDGE for at-least-once delivery; payloads are deserialized with serdeType (STRING default)."
 )
 @Plugin(
-    aliases = {"io.kestra.plugin.jms.JMSRealtimeTrigger"},
+    aliases = { "io.kestra.plugin.jms.JMSRealtimeTrigger" },
     examples = {
         @Example(
             title = "Start a flow for each message on a specific JMS queue.",
@@ -96,7 +98,8 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
 
     @Override
     public Publisher<Execution> evaluate(ConditionContext conditionContext, TriggerContext context) {
-        Flux<JMSMessage> messageFlux = Flux.create(emitter -> {
+        Flux<JMSMessage> messageFlux = Flux.create(emitter ->
+        {
             // We use a self-managed wrapper for JMS resources to ensure they are all closed correctly.
             JmsListener jmsListener = null;
             try {
@@ -145,8 +148,7 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
             String messageSelector,
             SerdeType serdeType,
             java.util.function.Consumer<JMSMessage> messageConsumer,
-            java.util.function.Consumer<Throwable> errorConsumer
-        ) {
+            java.util.function.Consumer<Throwable> errorConsumer) {
             this.runContext = runContext;
             this.connectionFactoryConfig = connectionFactoryConfig;
             this.destination = destination;
@@ -177,7 +179,8 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
 
             ConsumerAdapter consumer = (ConsumerAdapter) session.createConsumer(jmsDestination, messageSelector);
 
-            consumer.setMessageListener(message -> {
+            consumer.setMessageListener(message ->
+            {
                 try {
                     JMSMessage kestraMessage = JMSMessage.of(message, serdeType);
                     messageConsumer.accept(kestraMessage);

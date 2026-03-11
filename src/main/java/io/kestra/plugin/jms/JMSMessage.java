@@ -1,20 +1,21 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
-import at.conapi.oss.jms.adapter.AbstractJMSException;
-import at.conapi.oss.jms.adapter.AbstractMessage;
-import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.models.tasks.Output;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
+
+import io.kestra.core.models.tasks.Output;
+import io.kestra.plugin.jms.serde.SerdeType;
+
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.AbstractJMSException;
+import at.conapi.oss.jms.adapter.AbstractMessage;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * Represents a message consumed from or produced to a JMS broker.
@@ -66,7 +67,7 @@ public final class JMSMessage implements Output {
      * Creates a JMSMessage from the AbstractMessage
      *
      * @param msg The source JMS message (AbstractMessage)
-     * @param serdeType  The serialization/deserialization format for the message body.
+     * @param serdeType The serialization/deserialization format for the message body.
      * @return A new AbstractMessage instance.
      * @throws Exception if an error occurs during message processing.
      */
@@ -76,20 +77,20 @@ public final class JMSMessage implements Output {
         AbstractDestination replyToDestination = msg.getJMSReplyTo();
 
         return JMSMessage.builder()
-                .data(data)
-                .contentType(msg.getJMSType())
-                .headers(extractProperties(msg))
-                .deliveryMode(msg.getJMSDeliveryMode())
-                .priority(msg.getJMSPriority())
-                .messageId(msg.getJMSMessageID())
-                .correlationId(msg.getJMSCorrelationID())
-                .replyTo(getDestinationName(replyToDestination))
-                .replyToType(getDestinationType(replyToDestination))
-                .expiration(getExpiration(msg))
-                .timestamp(Instant.ofEpochMilli(msg.getJMSTimestamp()))
-                .type(msg.getJMSType())
-                .contentEncoding(getStringProperty(msg, "contentEncoding"))
-                .build();
+            .data(data)
+            .contentType(msg.getJMSType())
+            .headers(extractProperties(msg))
+            .deliveryMode(msg.getJMSDeliveryMode())
+            .priority(msg.getJMSPriority())
+            .messageId(msg.getJMSMessageID())
+            .correlationId(msg.getJMSCorrelationID())
+            .replyTo(getDestinationName(replyToDestination))
+            .replyToType(getDestinationType(replyToDestination))
+            .expiration(getExpiration(msg))
+            .timestamp(Instant.ofEpochMilli(msg.getJMSTimestamp()))
+            .type(msg.getJMSType())
+            .contentEncoding(getStringProperty(msg, "contentEncoding"))
+            .build();
     }
 
     /**
@@ -119,8 +120,7 @@ public final class JMSMessage implements Output {
      * @param destination The JMS destination.
      * @return The DestinationType enum.
      */
-    private static AbstractDestination.DestinationType getDestinationType(AbstractDestination destination) throws AbstractJMSException
-    {
+    private static AbstractDestination.DestinationType getDestinationType(AbstractDestination destination) throws AbstractJMSException {
         if (destination == null) {
             return null;
         }
@@ -128,8 +128,7 @@ public final class JMSMessage implements Output {
         return destination.getDestinationType();
     }
 
-    private static byte[] getBodyAsBytes(AbstractMessage msg) throws AbstractJMSException
-    {
+    private static byte[] getBodyAsBytes(AbstractMessage msg) throws AbstractJMSException {
         if (msg.isTextMessageInstance()) {
             String text = msg.getText();
             return text != null ? text.getBytes(java.nio.charset.StandardCharsets.UTF_8) : null;

@@ -1,11 +1,12 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
-import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.core.models.annotations.PluginProperty;
 import io.kestra.core.models.tasks.Task;
 import io.kestra.core.runners.RunContext;
+import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
+
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -26,8 +27,8 @@ public abstract class AbstractJmsTask extends Task {
     // during Property deserialization, causing "missing type id property 'type'" errors.
     @PluginProperty
     @Schema(
-            title = "Connection factory configuration.",
-            description = "Configuration for connecting to the JMS broker. Supports both direct connection factory instantiation and JNDI lookup."
+        title = "Connection factory configuration.",
+        description = "Configuration for connecting to the JMS broker. Supports both direct connection factory instantiation and JNDI lookup."
     )
     private ConnectionFactoryConfig connectionFactoryConfig;
 
@@ -63,6 +64,7 @@ public abstract class AbstractJmsTask extends Task {
 
     /**
      * Utility method to safely close JMS resources without throwing exceptions.
+     * 
      * @param closeable The JMS resource (Connection, Session, etc.) to close.
      */
     protected void closeQuietly(AutoCloseable closeable) {

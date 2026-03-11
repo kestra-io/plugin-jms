@@ -1,10 +1,11 @@
 package io.kestra.plugin.jms.serde;
 
-import io.kestra.core.serializers.JacksonMapper;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+
+import io.kestra.core.serializers.JacksonMapper;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(title = "Serializer / Deserializer used for the message body.")
 public enum SerdeType {

@@ -1,5 +1,18 @@
 package io.kestra.plugin.jms;
 
+import org.slf4j.Logger;
+
+import io.kestra.core.models.annotations.Example;
+import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
+import io.kestra.core.models.executions.metrics.Counter;
+import io.kestra.core.models.property.Data;
+import io.kestra.core.models.property.Property;
+import io.kestra.core.models.tasks.RunnableTask;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.serializers.JacksonMapper;
+import io.kestra.plugin.jms.serde.SerdeType;
+
 import at.conapi.oss.jms.adapter.AbstractDestination;
 import at.conapi.oss.jms.adapter.AbstractMessage;
 import at.conapi.oss.jms.adapter.AbstractProducer;
@@ -7,21 +20,10 @@ import at.conapi.oss.jms.adapter.AbstractSession;
 import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
 import at.conapi.oss.jms.adapter.impl.ProducerAdapter;
 import at.conapi.oss.jms.adapter.impl.SessionAdapter;
-import io.kestra.core.models.property.Data;
-import io.kestra.core.models.property.Property;
-import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.models.annotations.Example;
-import io.kestra.core.models.annotations.Plugin;
-import io.kestra.core.models.annotations.PluginProperty;
-import io.kestra.core.models.executions.metrics.Counter;
-import io.kestra.core.models.tasks.RunnableTask;
-import io.kestra.core.runners.RunContext;
-import io.kestra.core.serializers.JacksonMapper;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.slf4j.Logger;
 import reactor.core.publisher.Flux;
 
 /**
@@ -38,37 +40,38 @@ import reactor.core.publisher.Flux;
     description = "Connects with the configured JMS ConnectionFactory and publishes rendered payloads from `from` to the destination name as a queue or topic. Defaults use deliveryMode 2 (PERSISTENT), priority 4, timeToLive 0 (no expiry); payloads are serialized via serdeType (STRING default, JSON, BYTES) and plain strings without JSON/URI markers are sent as text."
 )
 @Plugin(
-    aliases = {"io.kestra.plugin.jms.JMSProducer"},
+    aliases = { "io.kestra.plugin.jms.JMSProducer" },
     examples = {
         @Example(
-                full = true,
-                title = "Produce a List of Messages to a JMS Queue",
-                code = """
-                        id: jms_produce
-                        namespace: company.team
+            full = true,
+            title = "Produce a List of Messages to a JMS Queue",
+            code = """
+                id: jms_produce
+                namespace: company.team
 
-                        tasks:
-                          - id: produce_to_queue
-                            type: io.kestra.plugin.jms.Produce
-                            connectionFactoryConfig:
-                              type: DIRECT
-                              providerJarPaths: kestra:///jms/activemq-client.jar
-                              connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
-                              username: admin
-                              password: "{{ secret('AMQ_PASSWORD') }}"
-                            destination:
-                              name: my-queue
-                              destinationType: QUEUE
-                            from:
-                              - data: "Hello World"
-                                headers:
-                                  property1: "value1"
-                              - data:
-                                  message: "Another message"
-                                  id: 123
-                        """
+                tasks:
+                  - id: produce_to_queue
+                    type: io.kestra.plugin.jms.Produce
+                    connectionFactoryConfig:
+                      type: DIRECT
+                      providerJarPaths: kestra:///jms/activemq-client.jar
+                      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+                      username: admin
+                      password: "{{ secret('AMQ_PASSWORD') }}"
+                    destination:
+                      name: my-queue
+                      destinationType: QUEUE
+                    from:
+                      - data: "Hello World"
+                        headers:
+                          property1: "value1"
+                      - data:
+                          message: "Another message"
+                          id: 123
+                """
         )
-})
+    }
+)
 public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Output>, Data.From {
 
     // NOTE: Using @PluginProperty instead of Property<JMSDestination> wrapper.
@@ -97,9 +100,9 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
 
     @Builder.Default
     @Schema(
-            title = "Serialization format for message body",
-            description = "Determines how message bodies are serialized: STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
-            defaultValue = "STRING"
+        title = "Serialization format for message body",
+        description = "Determines how message bodies are serialized: STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
+        defaultValue = "STRING"
     )
     private SerdeType serdeType = SerdeType.STRING;
 
@@ -119,33 +122,33 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
         String rDestName = runContext.render(this.destination.getDestinationName());
 
         try (
-                ConnectionAdapter connection = this.createConnection(runContext);
-                SessionAdapter session = (SessionAdapter) connection.createSession()
+            ConnectionAdapter connection = this.createConnection(runContext);
+            SessionAdapter session = (SessionAdapter) connection.createSession()
         ) {
-            String destType = this.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ?
-                    SessionAdapter.QUEUE : SessionAdapter.TOPIC;
+            String destType = this.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
             String destinationUrl = String.format("%s://%s", destType, rDestName);
             AbstractDestination jmsDestination = session.createDestination(destinationUrl);
 
             try (ProducerAdapter producer = (ProducerAdapter) session.createProducer(jmsDestination)) {
                 Flux<JMSMessage> messages = this.processFrom(runContext);
                 messageCount = messages
-                        .map(message -> {
-                            try {
-                                this.send(session, producer, message, runContext);
-                                logger.debug(
-                                    "Successfully sent JMS message to {}",
-                                    destinationUrl
-                                );
-                                return 1;
-                            } catch (Exception e) {
-                                logger.error("Failed to send JMS message", e);
-                                throw new RuntimeException(e);
-                            }
-                        })
-                        .reduce(0, Integer::sum)
-                        .blockOptional()
-                        .orElse(0);
+                    .map(message ->
+                    {
+                        try {
+                            this.send(session, producer, message, runContext);
+                            logger.debug(
+                                "Successfully sent JMS message to {}",
+                                destinationUrl
+                            );
+                            return 1;
+                        } catch (Exception e) {
+                            logger.error("Failed to send JMS message", e);
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .reduce(0, Integer::sum)
+                    .blockOptional()
+                    .orElse(0);
             }
         }
 
@@ -158,9 +161,9 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
      * and sends it using the given producer. It now supports creating different
      * message types based on the SerdeType.
      *
-     * @param session    The active AbstractSession, used to create the JMS message.
-     * @param producer   The active AbstractProducer used to send the message.
-     * @param message    The Kestra JMSMessage to be sent.
+     * @param session The active AbstractSession, used to create the JMS message.
+     * @param producer The active AbstractProducer used to send the message.
+     * @param message The Kestra JMSMessage to be sent.
      * @param runContext The Kestra run context
      * @throws Exception if serialization or sending fails.
      */
@@ -206,8 +209,10 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
         if (from instanceof String str) {
             String rendered = runContext.render(str);
             // Check if it's structured data (JSON/URI) vs plain text
-            if (!rendered.startsWith("{") && !rendered.startsWith("[") &&
-                !rendered.contains("://")) {
+            if (
+                !rendered.startsWith("{") && !rendered.startsWith("[") &&
+                    !rendered.contains("://")
+            ) {
                 // Plain string - wrap in JMSMessage
                 return Flux.just(JMSMessage.builder().data(rendered).build());
             }

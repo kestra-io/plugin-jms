@@ -1,17 +1,19 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.JmsFactory;
-import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
-import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
-import io.kestra.core.runners.RunContext;
-import io.kestra.core.plugins.PluginClassLoader;
-
-import javax.naming.Context;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
+
+import javax.naming.Context;
+
+import io.kestra.core.plugins.PluginClassLoader;
+import io.kestra.core.runners.RunContext;
+import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
+
+import at.conapi.oss.jms.adapter.JmsFactory;
+import at.conapi.oss.jms.adapter.impl.ConnectionFactoryAdapter;
 
 public class JMSConnectionFactory {
 
@@ -67,7 +69,7 @@ public class JMSConnectionFactory {
     private ConnectionFactoryAdapter createDirectConnectionFactory(RunContext runContext, ConnectionFactoryConfig.Direct config, JmsFactory jmsFactory) throws Exception {
         Map<String, String> properties = new HashMap<>();
         if (config.getConnectionProperties() != null) {
-            for(Map.Entry<String, String> entry : config.getConnectionProperties().entrySet()) {
+            for (Map.Entry<String, String> entry : config.getConnectionProperties().entrySet()) {
                 properties.put(entry.getKey(), runContext.render(entry.getValue()));
             }
         }
@@ -83,13 +85,13 @@ public class JMSConnectionFactory {
         jndiProperties.put(Context.PROVIDER_URL, rJndiProviderUrl);
 
         // credentials for the JNDI lookup can be set via plugin properties, or via the connection properties directly
-        if(config.getJndiPrincipal() != null) {
+        if (config.getJndiPrincipal() != null) {
             String rJndiPrincipal = runContext.render(config.getJndiPrincipal()).as(String.class).orElse(null);
             if (rJndiPrincipal != null) {
                 jndiProperties.put(Context.SECURITY_PRINCIPAL, rJndiPrincipal);
             }
         }
-        if(config.getJndiCredentials() != null) {
+        if (config.getJndiCredentials() != null) {
             String rJndiCredentials = runContext.render(config.getJndiCredentials()).as(String.class).orElse(null);
             if (rJndiCredentials != null) {
                 jndiProperties.put(Context.SECURITY_CREDENTIALS, rJndiCredentials);
@@ -182,4 +184,3 @@ public class JMSConnectionFactory {
     }
 
 }
-

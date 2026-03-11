@@ -1,30 +1,31 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
-import at.conapi.oss.jms.adapter.AbstractMessage;
-import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
-import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
-import at.conapi.oss.jms.adapter.impl.SessionAdapter;
-import io.kestra.core.models.property.Property;
-import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.models.annotations.Example;
-import io.kestra.core.models.annotations.Plugin;
-import io.kestra.core.models.annotations.PluginProperty;
-import io.kestra.core.models.executions.metrics.Counter;
-import io.kestra.core.models.tasks.RunnableTask;
-import io.kestra.core.runners.RunContext;
-import io.kestra.core.serializers.FileSerde;
-import io.kestra.core.utils.Rethrow;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import io.kestra.core.models.annotations.Example;
+import io.kestra.core.models.annotations.Plugin;
+import io.kestra.core.models.annotations.PluginProperty;
+import io.kestra.core.models.executions.metrics.Counter;
+import io.kestra.core.models.property.Property;
+import io.kestra.core.models.tasks.RunnableTask;
+import io.kestra.core.runners.RunContext;
+import io.kestra.core.serializers.FileSerde;
+import io.kestra.core.utils.Rethrow;
+import io.kestra.plugin.jms.serde.SerdeType;
+
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import at.conapi.oss.jms.adapter.AbstractMessage;
+import at.conapi.oss.jms.adapter.impl.ConnectionAdapter;
+import at.conapi.oss.jms.adapter.impl.ConsumerAdapter;
+import at.conapi.oss.jms.adapter.impl.SessionAdapter;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 /**
  * A Kestra task to consume messages from a JMS-compliant message broker.
@@ -41,32 +42,33 @@ import java.util.concurrent.atomic.AtomicInteger;
     description = "Connects to a JMS queue or topic, receives messages until limits are hit, and writes them to internal storage. CLIENT_ACKNOWLEDGE is used for at-least-once delivery; set maxMessages or maxWaitTimeout to bound execution."
 )
 @Plugin(
-    aliases = {"io.kestra.plugin.jms.JMSConsumer"},
+    aliases = { "io.kestra.plugin.jms.JMSConsumer" },
     examples = {
         @Example(
-                full = true,
-                title = "Consume 100 Messages from a JMS Queue",
-                code = """
-                        id: jms_consume
-                        namespace: company.team
+            full = true,
+            title = "Consume 100 Messages from a JMS Queue",
+            code = """
+                id: jms_consume
+                namespace: company.team
 
-                        tasks:
-                          - id: consume_from_queue
-                            type: io.kestra.plugin.jms.Consume
-                            connectionFactoryConfig:
-                              type: DIRECT
-                              providerJarPaths: kestra:///jms/activemq-client.jar
-                              connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
-                              username: admin
-                              password: "{{ secret('AMQ_PASSWORD') }}"
-                            destination:
-                              name: my-queue
-                              destinationType: QUEUE
-                            maxMessages: 100
-                            maxWaitTimeout: 5000
-                        """
+                tasks:
+                  - id: consume_from_queue
+                    type: io.kestra.plugin.jms.Consume
+                    connectionFactoryConfig:
+                      type: DIRECT
+                      providerJarPaths: kestra:///jms/activemq-client.jar
+                      connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
+                      username: admin
+                      password: "{{ secret('AMQ_PASSWORD') }}"
+                    destination:
+                      name: my-queue
+                      destinationType: QUEUE
+                    maxMessages: 100
+                    maxWaitTimeout: 5000
+                """
         )
-})
+    }
+)
 
 public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Output> {
 
@@ -81,16 +83,16 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
 
     @PluginProperty(dynamic = true)
     @Schema(
-            title = "Message selector",
-            description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
+        title = "Message selector",
+        description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
     )
     private String messageSelector;
 
     @Builder.Default
     @Schema(
-            title = "Deserialization format",
-            description = "STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
-            defaultValue = "STRING"
+        title = "Deserialization format",
+        description = "STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
+        defaultValue = "STRING"
     )
     private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
@@ -111,15 +113,18 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
         File tempFile = runContext.workingDir().createTempFile(".ion").toFile();
         URI uri;
 
-        try (ConsumeRunner consumer = new ConsumeRunner(runContext, this);
-             BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(tempFile))) {
+        try (
+            ConsumeRunner consumer = new ConsumeRunner(runContext, this);
+            BufferedOutputStream outputFile = new BufferedOutputStream(new FileOutputStream(tempFile))
+        ) {
 
             consumer.run(
-                    Rethrow.throwConsumer(message -> {
-                        FileSerde.write(outputFile, message);
-                        total.getAndIncrement();
-                    }),
-                    () -> this.ended(total, rMaxMessages)
+                Rethrow.throwConsumer(message ->
+                {
+                    FileSerde.write(outputFile, message);
+                    total.getAndIncrement();
+                }),
+                () -> this.ended(total, rMaxMessages)
             );
 
             outputFile.flush();
@@ -130,9 +135,9 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
         uri = runContext.storage().putFile(tempFile);
 
         return Output.builder()
-                .uri(uri)
-                .count(total.get())
-                .build();
+            .uri(uri)
+            .count(total.get())
+            .build();
     }
 
     private boolean ended(AtomicInteger count, Integer rMaxMessages) {
@@ -166,8 +171,8 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
             // Inherit the connection logic from the abstract base class
             this.connection = task.createConnection(runContext);
 
-            this.connection.setExceptionListener(exception ->
-                    runContext.logger().error("Asynchronous JMS Connection Error: {}", exception.getMessage(), exception)
+            this.connection.setExceptionListener(
+                exception -> runContext.logger().error("Asynchronous JMS Connection Error: {}", exception.getMessage(), exception)
             );
 
             //  Create the Session object with CLIENT_ACKNOWLEDGE for at-least-once delivery semantics
@@ -175,8 +180,7 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
 
             //  Create the Destination object depending on the Destination Type (QUEUE or TOPIC)
             String destName = runContext.render(task.destination.getDestinationName());
-            String destType = task.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ?
-                    SessionAdapter.QUEUE : SessionAdapter.TOPIC;
+            String destType = task.destination.getDestinationType() == AbstractDestination.DestinationType.QUEUE ? SessionAdapter.QUEUE : SessionAdapter.TOPIC;
             String destinationUrl = String.format("%s://%s", destType, destName);
             AbstractDestination jmsDestination = this.session.createDestination(destinationUrl);
 
@@ -198,15 +202,18 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
                 long waitTime = 100; // Default short poll
                 if (this.rMaxWaitTimeout > 0) {
                     long remainingTime = (startTime + this.rMaxWaitTimeout) - System.currentTimeMillis();
-                    if (remainingTime <= 0) break; // Max duration reached
+                    if (remainingTime <= 0)
+                        break; // Max duration reached
                     waitTime = remainingTime;
                 }
 
                 AbstractMessage message = this.messageConsumer.receive(waitTime);
 
                 if (message == null) {
-                    if (this.rMaxWaitTimeout > 0) break; // Timeout on receive with max duration set
-                    else continue; // No message on a short poll, just loop again
+                    if (this.rMaxWaitTimeout > 0)
+                        break; // Timeout on receive with max duration set
+                    else
+                        continue; // No message on a short poll, just loop again
                 }
 
                 messageProcessor.accept(JMSMessage.of(message, this.rSerdeType));

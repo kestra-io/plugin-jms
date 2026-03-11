@@ -1,6 +1,14 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
+import java.io.FileInputStream;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
 import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
@@ -10,17 +18,11 @@ import io.kestra.core.storages.StorageInterface;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
+
+import at.conapi.oss.jms.adapter.AbstractDestination;
 import jakarta.inject.Inject;
 import jakarta.jms.*;
-import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
-
-import java.io.FileInputStream;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
 
 import static io.kestra.core.tenant.TenantService.MAIN_TENANT;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -48,17 +50,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from(Map.of("data", "Hello Kestra JMS!"))
             .serdeType(SerdeType.STRING)
             .build();
@@ -69,8 +75,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(1));
 
         // Verify message was actually sent by consuming it
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -96,22 +104,28 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
-            .from(List.of(
-                Map.of("data", "Message 1"),
-                Map.of("data", "Message 2"),
-                Map.of("data", "Message 3")
-            ))
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
+            .from(
+                List.of(
+                    Map.of("data", "Message 1"),
+                    Map.of("data", "Message 2"),
+                    Map.of("data", "Message 3")
+                )
+            )
             .serdeType(SerdeType.STRING)
             .build();
 
@@ -121,8 +135,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(3));
 
         // Verify all messages were sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -150,17 +166,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from(Map.of("data", Map.of("id", 123, "name", "Test Item")))
             .serdeType(SerdeType.JSON)
             .build();
@@ -171,8 +191,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(1));
 
         // Verify JSON message was sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -201,21 +223,27 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
-            .from(Map.of(
-                "data", "Message with custom properties",
-                "headers", Map.of("customProp", "customValue", "priority", 5)
-            ))
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
+            .from(
+                Map.of(
+                    "data", "Message with custom properties",
+                    "headers", Map.of("customProp", "customValue", "priority", 5)
+                )
+            )
             .serdeType(SerdeType.STRING)
             .build();
 
@@ -225,8 +253,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(1));
 
         // Verify message properties
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -250,17 +280,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from("Hello from plain string!")
             .serdeType(SerdeType.STRING)
             .build();
@@ -271,8 +305,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(1));
 
         // Verify message was sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -296,17 +332,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from("""
                 [
                   {"data": "Message 1 from JSON"},
@@ -322,8 +362,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(2));
 
         // Verify messages were sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -351,17 +393,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from("""
                 {"data": "Single message from JSON"}
                 """)
@@ -374,8 +420,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(1));
 
         // Verify message was sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));
@@ -406,10 +454,12 @@ class ProduceTest extends AbstractJMSTest {
             storageUri = storageInterface.put(MAIN_TENANT, null, URI.create("/jms-test-messages.ion"), input);
         }
 
-        RunContext runContext = runContextFactory.of(Map.of(
-            "testId", IdUtils.create(),
-            "messagesUri", storageUri
-        ));
+        RunContext runContext = runContextFactory.of(
+            Map.of(
+                "testId", IdUtils.create(),
+                "messagesUri", storageUri
+            )
+        );
 
         // Test with Kestra URI (using Data.From pattern)
         Produce task = Produce.builder()
@@ -417,17 +467,21 @@ class ProduceTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .from("{{ messagesUri }}")
             .serdeType(SerdeType.STRING)
             .build();
@@ -438,8 +492,10 @@ class ProduceTest extends AbstractJMSTest {
         assertThat(output.getMessagesCount(), is(3));
 
         // Verify all messages were sent
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             connection.start();
             MessageConsumer consumer = session.createConsumer(session.createQueue(TEST_QUEUE_NAME));

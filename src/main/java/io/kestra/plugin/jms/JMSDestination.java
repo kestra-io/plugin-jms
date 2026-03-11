@@ -1,7 +1,8 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
 import io.kestra.core.models.annotations.PluginProperty;
+
+import at.conapi.oss.jms.adapter.AbstractDestination;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
@@ -9,8 +10,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class JMSDestination
-{
+public class JMSDestination {
     @Schema(title = "Destination name", description = "Rendered JMS queue or topic name")
     @PluginProperty(dynamic = true)
     @NotNull

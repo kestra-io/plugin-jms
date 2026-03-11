@@ -1,6 +1,14 @@
 package io.kestra.plugin.jms;
 
-import at.conapi.oss.jms.adapter.AbstractDestination;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.jupiter.api.Test;
+
+import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
@@ -8,16 +16,10 @@ import io.kestra.core.serializers.JacksonMapper;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
-import io.kestra.core.junit.annotations.KestraTest;
-import jakarta.inject.Inject;
-import org.junit.jupiter.api.Test;
 
+import at.conapi.oss.jms.adapter.AbstractDestination;
+import jakarta.inject.Inject;
 import jakarta.jms.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -42,17 +44,21 @@ class ConsumeTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .maxMessages(Property.ofValue(1))
             .maxWaitTimeout(Property.ofValue(5000L))
             .serdeType(Property.ofValue(SerdeType.STRING))
@@ -86,17 +92,21 @@ class ConsumeTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .maxMessages(Property.ofValue(3))
             .maxWaitTimeout(Property.ofValue(5000L))
             .serdeType(Property.ofValue(SerdeType.STRING))
@@ -128,17 +138,21 @@ class ConsumeTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .messageSelector("priority = 10")
             .maxMessages(Property.ofValue(10))
             .maxWaitTimeout(Property.ofValue(5000L))
@@ -153,7 +167,8 @@ class ConsumeTest extends AbstractJMSTest {
         // Verify filtered messages
         List<JMSMessage> messages = readMessagesFromStorage(runContext, output.getUri());
         assertThat(messages, hasSize(2));
-        messages.forEach(msg -> {
+        messages.forEach(msg ->
+        {
             assertThat(msg.getData().toString(), containsString("priority message"));
         });
     }
@@ -171,17 +186,21 @@ class ConsumeTest extends AbstractJMSTest {
             .connectionFactoryConfig(
                 ConnectionFactoryConfig.Direct.builder()
                     .connectionFactoryClass(Property.ofValue("org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory"))
-                    .connectionProperties(Map.of(
-                        "brokerURL", ACTIVEMQ_URL,
-                        "user", ACTIVEMQ_USER,
-                        "password", ACTIVEMQ_PASSWORD
-                    ))
+                    .connectionProperties(
+                        Map.of(
+                            "brokerURL", ACTIVEMQ_URL,
+                            "user", ACTIVEMQ_USER,
+                            "password", ACTIVEMQ_PASSWORD
+                        )
+                    )
                     .build()
             )
-            .destination(JMSDestination.builder()
-                .destinationName(TEST_QUEUE_NAME)
-                .destinationType(AbstractDestination.DestinationType.QUEUE)
-                .build())
+            .destination(
+                JMSDestination.builder()
+                    .destinationName(TEST_QUEUE_NAME)
+                    .destinationType(AbstractDestination.DestinationType.QUEUE)
+                    .build()
+            )
             .maxMessages(Property.ofValue(10))
             .maxWaitTimeout(Property.ofValue(2000L)) // 2 seconds timeout
             .serdeType(Property.ofValue(SerdeType.STRING))
@@ -197,8 +216,10 @@ class ConsumeTest extends AbstractJMSTest {
      * Helper method to send a test message to a queue.
      */
     private void sendTestMessage(String queueName, String messageText) throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             Queue queue = session.createQueue(queueName);
             MessageProducer producer = session.createProducer(queue);
@@ -212,8 +233,10 @@ class ConsumeTest extends AbstractJMSTest {
      * Helper method to send a test message with a custom property.
      */
     private void sendTestMessageWithProperty(String queueName, String messageText, String propertyName, int propertyValue) throws Exception {
-        try (Connection connection = connectionFactory.createConnection();
-             Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+        try (
+            Connection connection = connectionFactory.createConnection();
+            Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
+        ) {
 
             Queue queue = session.createQueue(queueName);
             MessageProducer producer = session.createProducer(queue);
