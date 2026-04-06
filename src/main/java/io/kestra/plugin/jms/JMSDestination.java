@@ -12,7 +12,7 @@ import lombok.Getter;
 @Builder
 public class JMSDestination {
     @Schema(title = "Destination name", description = "Rendered JMS queue or topic name")
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "main")
     @NotNull
     private String destinationName;
 
