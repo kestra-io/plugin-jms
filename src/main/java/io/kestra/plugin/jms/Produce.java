@@ -78,24 +78,28 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
     // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
     // config objects entirely, using flat Property<String> fields instead.
-    @PluginProperty
+    @PluginProperty(group = "main")
     @NotNull
     @Schema(title = "Destination for messages", description = "Rendered queue or topic name; destinationType chooses QUEUE vs TOPIC")
     private JMSDestination destination;
 
     @Builder.Default
     @Schema(title = "JMS priority", description = "Rendered integer priority 0-9; default 4")
+    @PluginProperty(group = "advanced")
     private Property<Integer> priority = Property.ofValue(4);
 
     @Builder.Default
     @Schema(title = "JMS delivery mode", description = "Rendered delivery mode flag; default 2 (PERSISTENT)")
+    @PluginProperty(group = "advanced")
     private Property<Integer> deliveryMode = Property.ofValue(2);
 
     @Builder.Default
     @Schema(title = "Message time to live", description = "Rendered TTL in milliseconds; default 0 keeps the message indefinitely")
+    @PluginProperty(group = "destination")
     private Property<Long> timeToLive = Property.ofValue(0L);
 
     @NotNull
+    @PluginProperty(group = "main")
     private Object from;
 
     @Builder.Default
@@ -104,6 +108,7 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
         description = "Determines how message bodies are serialized: STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
         defaultValue = "STRING"
     )
+    @PluginProperty(group = "advanced")
     private SerdeType serdeType = SerdeType.STRING;
 
     /**

@@ -33,7 +33,7 @@ public abstract class ConnectionFactoryConfig {
         title = "Provider JAR paths",
         description = "One or more paths to the JMS provider JARs (e.g., `file:///app/plugins/jms-libs/client.jar`). If unset, all JARs under the plugins/jms-libs folder are added to the classpath."
     )
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "advanced")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY) // Allow single string in YAML
     private List<String> providerJarPaths;
 
@@ -41,21 +41,21 @@ public abstract class ConnectionFactoryConfig {
         title = "Username for broker authentication",
         description = "Rendered username used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "connection")
     private String username;
 
     @Schema(
         title = "Password for broker authentication",
         description = "Rendered password used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "connection")
     private String password;
 
     @Schema(
         title = "Connection properties",
         description = "Additional POJO properties applied to the Direct or JNDI ConnectionFactory instance."
     )
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "advanced")
     private Map<String, String> connectionProperties;
 
     @Builder.Default
@@ -64,6 +64,7 @@ public abstract class ConnectionFactoryConfig {
         description = "Enable only for providers that ship JMS API classes (e.g., SonicMQ/Aurea) to avoid ClassCastException by loading JMS APIs from the parent classloader. Leave disabled for typical providers like RabbitMQ, ActiveMQ, Artemis.",
         defaultValue = "false"
     )
+    @PluginProperty(group = "advanced")
     private Property<Boolean> useFilteredClassLoader = Property.ofValue(false);
 
     // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.
@@ -83,6 +84,7 @@ public abstract class ConnectionFactoryConfig {
             examples = { "org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory" }
         )
         @NotNull
+        @PluginProperty(group = "main")
         private Property<String> connectionFactoryClass;
 
         // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.
@@ -103,20 +105,25 @@ public abstract class ConnectionFactoryConfig {
             example = "org.wildfly.naming.client.WildFlyInitialContextFactory"
         )
         @NotNull
+        @PluginProperty(group = "main")
         private Property<String> jndiInitialContextFactory;
 
         @Schema(title = "JNDI provider URL", example = "remote+http://localhost:8080")
         @NotNull
+        @PluginProperty(group = "main")
         private Property<String> jndiProviderUrl;
 
         @Schema(title = "JNDI principal", example = "Administrator")
+        @PluginProperty(group = "advanced")
         private Property<String> jndiPrincipal;
 
         @Schema(title = "JNDI credentials", example = "password")
+        @PluginProperty(group = "connection")
         private Property<String> jndiCredentials;
 
         @Schema(title = "JNDI ConnectionFactory name", example = "jms/RemoteConnectionFactory")
         @NotNull
+        @PluginProperty(group = "main")
         private Property<String> jndiConnectionFactoryName;
 
         // This is a hack to make JavaDoc working as annotation processor didn't run before JavaDoc.

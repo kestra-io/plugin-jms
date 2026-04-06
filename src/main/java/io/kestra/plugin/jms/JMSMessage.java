@@ -16,6 +16,7 @@ import at.conapi.oss.jms.adapter.AbstractMessage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import io.kestra.core.models.annotations.PluginProperty;
 
 /**
  * Represents a message consumed from or produced to a JMS broker.
@@ -25,42 +26,54 @@ import lombok.Getter;
 @Builder
 public final class JMSMessage implements Output {
     @Schema(title = "The message's content type.")
+    @PluginProperty(group = "advanced")
     private final String contentType;
 
     @Schema(title = "The message's content encoding.")
+    @PluginProperty(group = "processing")
     private final String contentEncoding;
 
     @Schema(title = "A map of message headers (JMS properties).")
+    @PluginProperty(group = "advanced")
     private final Map<String, Object> headers;
 
     @Schema(title = "The JMS delivery mode (1 for non-persistent, 2 for persistent).")
+    @PluginProperty(group = "advanced")
     private final Integer deliveryMode;
 
     @Schema(title = "The message priority level.")
+    @PluginProperty(group = "advanced")
     private final Integer priority;
 
     @Schema(title = "The unique JMS Message ID.")
+    @PluginProperty(group = "advanced")
     private final String messageId;
 
     @Schema(title = "The JMS Correlation ID.")
+    @PluginProperty(group = "advanced")
     private final String correlationId;
 
     @Schema(title = "The name of the destination to which a reply should be sent.")
+    @PluginProperty(group = "destination")
     private final String replyTo;
 
     @Schema(title = "The type of the replyTo destination (QUEUE or TOPIC).")
     private final AbstractDestination.DestinationType replyToType;
 
     @Schema(title = "The duration until the message expires.")
+    @PluginProperty(group = "advanced")
     private final Duration expiration;
 
     @Schema(title = "The timestamp when the message was sent.")
+    @PluginProperty(group = "advanced")
     private final Instant timestamp;
 
     @Schema(title = "The message type identifier.")
+    @PluginProperty(group = "advanced")
     private final String type;
 
     @Schema(title = "The deserialized message body.")
+    @PluginProperty(group = "advanced")
     private final Object data;
 
     /**

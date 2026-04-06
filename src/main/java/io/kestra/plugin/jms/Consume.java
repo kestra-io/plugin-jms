@@ -76,12 +76,12 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
     // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
     // config objects entirely, using flat Property<String> fields instead.
-    @PluginProperty
+    @PluginProperty(group = "main")
     @NotNull
     @Schema(title = "Destination to consume", description = "Rendered queue or topic name; destinationType selects QUEUE vs TOPIC")
     private JMSDestination destination;
 
-    @PluginProperty(dynamic = true)
+    @PluginProperty(dynamic = true, group = "processing")
     @Schema(
         title = "Message selector",
         description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
@@ -94,14 +94,17 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
         description = "STRING for text, JSON for JSON-formatted text, BYTES for binary data.",
         defaultValue = "STRING"
     )
+    @PluginProperty(group = "advanced")
     private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
     @Builder.Default
     @Schema(title = "Maximum messages to consume", description = "Rendered upper bound on messages; default 1")
+    @PluginProperty(group = "advanced")
     private Property<Integer> maxMessages = Property.ofValue(1);
 
     @Builder.Default
     @Schema(title = "Maximum wait time (ms)", description = "Rendered timeout in milliseconds; default 0 waits indefinitely")
+    @PluginProperty(group = "execution")
     private Property<Long> maxWaitTimeout = Property.ofValue(0L);
 
     @Override

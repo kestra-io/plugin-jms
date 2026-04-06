@@ -25,7 +25,7 @@ public abstract class AbstractJmsTask extends Task {
     // Polymorphic configuration objects with @JsonTypeInfo/@JsonSubTypes don't deserialize correctly
     // when wrapped in Property<>. Jackson cannot resolve the type discriminator ('type' field)
     // during Property deserialization, causing "missing type id property 'type'" errors.
-    @PluginProperty
+    @PluginProperty(group = "advanced")
     @Schema(
         title = "Connection factory configuration.",
         description = "Configuration for connecting to the JMS broker. Supports both direct connection factory instantiation and JNDI lookup."

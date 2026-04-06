@@ -73,7 +73,7 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
     // Polymorphic configuration objects with @JsonTypeInfo/@JsonSubTypes don't deserialize correctly
     // when wrapped in Property<>. Jackson cannot resolve the type discriminator ('type' field)
     // during Property deserialization, causing "missing type id property 'type'" errors.
-    @PluginProperty
+    @PluginProperty(group = "main")
     @NotNull
     private ConnectionFactoryConfig connectionFactoryConfig;
 
@@ -81,7 +81,7 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
     // Nested configuration objects with @PluginProperty fields don't deserialize correctly
     // when wrapped in Property<>. Other Kestra messaging plugins (AMQP, Solace) avoid nested
     // config objects entirely, using flat Property<String> fields instead.
-    @PluginProperty
+    @PluginProperty(group = "main")
     @NotNull
     @Schema(title = "Destination to consume", description = "Rendered queue or topic name; destinationType selects QUEUE vs TOPIC")
     private JMSDestination destination;
@@ -90,10 +90,12 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
         title = "Message selector",
         description = "Optional JMS selector to filter messages server-side using SQL-92 syntax (e.g., \"JMSPriority > 5 AND type = 'order'\")."
     )
+    @PluginProperty(group = "advanced")
     private String messageSelector;
 
     @Builder.Default
     @Schema(title = "Deserialization format", description = "STRING for text, JSON for JSON text, BYTES for binary payloads.", defaultValue = "STRING")
+    @PluginProperty(group = "processing")
     private Property<SerdeType> serdeType = Property.ofValue(SerdeType.STRING);
 
     @Override
