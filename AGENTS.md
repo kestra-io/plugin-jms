@@ -7,8 +7,9 @@
 
 ## Why
 
-- This plugin integrates Kestra with JMS.
-- It provides tasks that produce, consume, and trigger workflows from JMS queues or topics.
+- What user problem does this solve? Teams need to produce, consume, and trigger workflows from JMS queues or topics from orchestrated workflows instead of relying on manual console work, ad hoc scripts, or disconnected schedulers.
+- Why would a team adopt this plugin in a workflow? It keeps JMS steps in the same Kestra flow as upstream preparation, approvals, retries, notifications, and downstream systems.
+- What operational/business outcome does it enable? It reduces manual handoffs and fragmented tooling while improving reliability, traceability, and delivery speed for processes that depend on JMS.
 
 ## How
 
