@@ -41,14 +41,14 @@ public abstract class ConnectionFactoryConfig {
         title = "Username for broker authentication",
         description = "Rendered username used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
-    @PluginProperty(dynamic = true, group = "connection")
+    @PluginProperty(secret = true, dynamic = true, group = "connection")
     private String username;
 
     @Schema(
         title = "Password for broker authentication",
         description = "Rendered password used when creating the connection. Omit for JNDI if the ConnectionFactory already embeds credentials."
     )
-    @PluginProperty(dynamic = true, group = "connection")
+    @PluginProperty(dynamic = true, group = "connection", secret = true)
     private String password;
 
     @Schema(
@@ -118,7 +118,7 @@ public abstract class ConnectionFactoryConfig {
         private Property<String> jndiPrincipal;
 
         @Schema(title = "JNDI credentials", example = "password")
-        @PluginProperty(group = "connection")
+        @PluginProperty(group = "connection", secret = true)
         private Property<String> jndiCredentials;
 
         @Schema(title = "JNDI ConnectionFactory name", example = "jms/RemoteConnectionFactory")
