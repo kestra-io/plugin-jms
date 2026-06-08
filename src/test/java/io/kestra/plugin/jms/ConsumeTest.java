@@ -1,8 +1,6 @@
 package io.kestra.plugin.jms;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.io.BufferedInputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -12,7 +10,7 @@ import io.kestra.core.junit.annotations.KestraTest;
 import io.kestra.core.models.property.Property;
 import io.kestra.core.runners.RunContext;
 import io.kestra.core.runners.RunContextFactory;
-import io.kestra.core.serializers.JacksonMapper;
+import io.kestra.core.serializers.FileSerde;
 import io.kestra.core.utils.IdUtils;
 import io.kestra.plugin.jms.configuration.ConnectionFactoryConfig;
 import io.kestra.plugin.jms.serde.SerdeType;
@@ -251,14 +249,8 @@ class ConsumeTest extends AbstractJMSTest {
      * Helper method to read consumed messages from Kestra storage.
      */
     private List<JMSMessage> readMessagesFromStorage(RunContext runContext, java.net.URI uri) throws Exception {
-        List<JMSMessage> messages = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(runContext.storage().getFile(uri)))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                JMSMessage message = JacksonMapper.ofIon().readValue(line, JMSMessage.class);
-                messages.add(message);
-            }
+        try (var inputStream = new BufferedInputStream(runContext.storage().getFile(uri), FileSerde.BUFFER_SIZE)) {
+            return FileSerde.readAll(inputStream, JMSMessage.class).collectList().block();
         }
-        return messages;
     }
 }
