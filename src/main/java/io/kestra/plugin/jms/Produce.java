@@ -231,7 +231,7 @@ public class Produce extends AbstractJmsTask implements RunnableTask<Produce.Out
     @Builder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "Number of messages published.")
+        @Schema(title = "Number of messages published")
         private final Integer messagesCount;
     }
 }
