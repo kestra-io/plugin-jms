@@ -150,10 +150,10 @@ public class Consume extends AbstractJmsTask implements RunnableTask<Consume.Out
     @Builder
     @Getter
     public static class Output implements io.kestra.core.models.tasks.Output {
-        @Schema(title = "Number of messages consumed.")
+        @Schema(title = "Number of messages consumed")
         private final Integer count;
 
-        @Schema(title = "URI of the internal storage file containing the consumed messages.")
+        @Schema(title = "URI of the internal storage file containing the consumed messages")
         private final URI uri;
     }
 
