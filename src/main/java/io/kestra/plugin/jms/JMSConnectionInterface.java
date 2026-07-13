@@ -15,11 +15,11 @@ public interface JMSConnectionInterface {
     @NotNull
     ConnectionFactoryConfig getConnectionFactoryConfig();
 
-    @Schema(title = "The username for authentication.")
+    @Schema(title = "The username for authentication")
     @PluginProperty(secret = true, dynamic = true, group = "connection")
     String getUsername();
 
-    @Schema(title = "The password for authentication.")
+    @Schema(title = "The password for authentication")
     @PluginProperty(secret = true, dynamic = true, group = "connection")
     String getPassword();
 }

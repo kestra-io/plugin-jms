@@ -27,7 +27,7 @@ public abstract class AbstractJmsTask extends Task {
     // during Property deserialization, causing "missing type id property 'type'" errors.
     @PluginProperty(group = "advanced")
     @Schema(
-        title = "Connection factory configuration.",
+        title = "Connection factory configuration",
         description = "Configuration for connecting to the JMS broker. Supports both direct connection factory instantiation and JNDI lookup."
     )
     private ConnectionFactoryConfig connectionFactoryConfig;

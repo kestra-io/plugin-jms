@@ -1,6 +1,8 @@
 package io.kestra.plugin.jms;
 
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -446,7 +448,9 @@ class ProduceTest extends AbstractJMSTest {
             JMSMessage.builder().data("Message 2 from URI").build(),
             JMSMessage.builder().data("Message 3 from URI").build()
         );
-        FileSerde.writeAll(Files.newBufferedWriter(tempFile), Flux.fromIterable(inputMessages)).block();
+        try (var outputStream = new BufferedOutputStream(new FileOutputStream(tempFile.toFile()), FileSerde.BUFFER_SIZE)) {
+            FileSerde.writeAll(outputStream, Flux.fromIterable(inputMessages)).block();
+        }
 
         // Upload to Kestra storage
         URI storageUri;

@@ -73,6 +73,7 @@ public class RealtimeTrigger extends AbstractTrigger implements RealtimeTriggerI
     // Polymorphic configuration objects with @JsonTypeInfo/@JsonSubTypes don't deserialize correctly
     // when wrapped in Property<>. Jackson cannot resolve the type discriminator ('type' field)
     // during Property deserialization, causing "missing type id property 'type'" errors.
+    @Schema(title = "JMS connection factory configuration")
     @PluginProperty(group = "main")
     @NotNull
     private ConnectionFactoryConfig connectionFactoryConfig;
