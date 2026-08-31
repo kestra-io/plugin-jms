@@ -128,7 +128,7 @@ dependencies {
     testImplementation "com.rabbitmq.jms:rabbitmq-jms:3.8.0"
 
     // ActiveMQ Artemis Jakarta client for integration tests (Jakarta JMS 3.x)
-    testImplementation "org.apache.activemq:artemis-jakarta-client:2.55.0"
+    testImplementation "org.apache.activemq:artemis-jakarta-client:2.56.0"
 
     // ActiveMQ Classic client for integration tests and examples (classic ActiveMQ 5.x)
     testImplementation "org.apache.activemq:activemq-client:6.3.1"
