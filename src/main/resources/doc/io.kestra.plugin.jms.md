@@ -10,7 +10,7 @@ Configure `connectionFactoryConfig` with one of two subtypes:
 
 **JNDI** (look up via JNDI): set `jndiInitialContextFactory`, `jndiProviderUrl`, and `jndiConnectionFactoryName` (all required). Optionally set `jndiPrincipal` and `jndiCredentials` for authenticated JNDI lookups.
 
-Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and apply connection properties globally with [plugin defaults](https://kestra.io/docs/workflow-components/plugin-defaults).
+Store secrets in [secrets](https://kestra.io/docs/concepts/secret) and set connection properties on each task.
 
 ## Tasks
 
