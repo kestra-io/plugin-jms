@@ -59,7 +59,7 @@ import reactor.core.publisher.Flux;
                       username: admin
                       password: "{{ secret('AMQ_PASSWORD') }}"
                     destination:
-                      name: my-queue
+                      destinationName: my-queue
                       destinationType: QUEUE
                     from:
                       - data: "Hello World"

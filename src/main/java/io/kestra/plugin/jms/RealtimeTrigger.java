@@ -61,7 +61,7 @@ import reactor.core.publisher.Flux;
                       providerJarPaths: kestra:///jms/activemq-client.jar
                       connectionFactoryClass: org.apache.activemq.ActiveMQConnectionFactory
                     destination:
-                      name: "kestra.events"
+                      destinationName: "kestra.events"
                       destinationType: QUEUE
                 """
         )
