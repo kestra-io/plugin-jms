@@ -61,7 +61,7 @@ import lombok.experimental.SuperBuilder;
                       username: admin
                       password: "{{ secret('AMQ_PASSWORD') }}"
                     destination:
-                      name: my-queue
+                      destinationName: my-queue
                       destinationType: QUEUE
                     maxMessages: 100
                     maxWaitTimeout: 5000
